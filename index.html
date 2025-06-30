@@ -3,71 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 Indexuri & Reminder-uri v3.0</title>
+    <title>📊 Indexuri &amp; Reminder-uri v3.0</title>
+
+    <!-- Stiluri -->
     <link rel="stylesheet" href="styles.css">
-    
-    <!-- 🚀 PWA Configuration -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4CAF50">
-    
-    <!-- iOS specific -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <!-- PWA mobile -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Indexuri v3.0">
     <link rel="apple-touch-icon" href="icon-192.png">
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
-    <!-- Chart.js pentru grafice (versiune stabilă pentru mobile) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    
+
+    <!-- Chart.js pentru grafice -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
     <!-- SheetJS pentru Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
+
     <!-- jsPDF pentru PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- Service Worker -->
+
+    <!-- Service Worker registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch(registrationError => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
+                    .then(reg => console.log('SW registered:', reg))
+                    .catch(err => console.log('SW registration failed:', err));
             });
         }
     </script>
 </head>
 <body>
-    <!-- Tot conținutul din body rămâne la fel -->
     <div class="container">
-        <!-- [AICI VINE TOT CODUL DIN BODY DIN FIȘIERUL TĂU] -->
         <!-- Header -->
         <div class="header">
-            <h1>📊 Indexuri & Reminder-uri v3.0</h1>
+            <h1>📊 Indexuri &amp; Reminder-uri v3.0</h1>
             <p>Sincronizare în timp real • Export Excel/PDF • Grafice interactive</p>
-            <!-- Indicator sincronizare -->
             <div id="syncIndicator" class="sync-indicator disconnected">
                 ⚠️ Nu e configurat partenerul
             </div>
-            <!-- Indicator utilizator conectat -->
             <div id="userIndicator" class="user-indicator">
                 👤 <span id="currentUser">Neautentificat</span>
             </div>
         </div>
 
-        <!-- [RESTUL CODULUI DIN BODY] -->
-        <!-- ... toate secțiunile: utilities, car, reports, stats ... -->
-        <!-- ... toate formularele și popup-urile ... -->
+        <!-- Alertele active -->
+        <div class="alerts" id="alerts"></div>
+
+        <!-- Loading pentru scanare -->
+        <div class="loading-overlay" id="loadingOverlay"></div>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <h3 id="loadingTitle">📷 Scanez imaginea...</h3>
+            <p id="loadingMessage">Extrag numărul de pe contor</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showSection('utilities')">🏠 Utilități</button>
+            <button class="tab" onclick="showSection('car')">🚗 Mașina</button>
+            <button class="tab" onclick="showSection('reports')">📊 Rapoarte</button>
+            <button class="tab" onclick="showSection('stats')">📈 Statistici</button>
+        </div>
+
+        <!-- Secțiunea Utilități -->
+        <div class="section active" id="utilities">
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button class="btn quick-btn btn-success" onclick="markAllIndexesSent()">✅ Trimise toate</button>
+                <button class="btn quick-btn btn-warning" onclick="showBulkIndexForm()">📝 Index rapid</button>
+                <button class="btn quick-btn quick-sync-btn sync-action" onclick="manualSync()">🔄 Sincronizează</button>
+                <button class="btn quick-btn" style="background: #9C27B0;" onclick="quickExportExcel()">📋 Excel rapid</button>
+                <label class="btn quick-btn btn-camera" for="cameraInput">📷 Scanează</label>
+                <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment" onchange="scanIndexFromImage(this.files[0])">
+            </div>
+            <!-- ... restul codului original pentru Utilități ... -->
+        </div>
+
+        <!-- Secțiunea Mașina -->
+        <div class="section" id="car">
+            <!-- ... conținut Mașina ... -->
+        </div>
+
+        <!-- Secțiunea Rapoarte -->
+        <div class="section" id="reports">
+            <!-- Filtre Rapoarte -->
+            <div class="card">
+                <h3>🎯 Filtre Rapoarte</h3>
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label>Anul:</label>
+                        <select id="reportYear">
+                            <option value="2024">2024</option>
+                            <option value="2025" selected>2025</option>
+                            <option value="all">Toate</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Luna:</label>
+                        <select id="reportMonth">
+                            <option value="all">Toate lunile</option>
+                            <option value="1">Ianuarie</option>
+                            <option value="2">Februarie</option>
+                            <option value="3">Martie</option>
+                            <option value="4">Aprilie</option>
+                            <option value="5">Mai</option>
+                            <option value="6">Iunie</option>
+                            <option value="7">Iulie</option>
+                            <option value="8">August</option>
+                            <option value="9">Septembrie</option>
+                            <option value="10">Octombrie</option>
+                            <option value="11">Noiembrie</option>
+                            <option value="12">Decembrie</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-success" onclick="updateReports()">🔄 Actualizează</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Export Actions -->
+            <div class="quick-actions">
+                <button class="btn quick-btn" style="background: #28a745;" onclick="exportExcelDetailed()">📋 Excel Detaliat</button>
+                <button class="btn quick-btn" style="background: #dc3545;" onclick="exportPDFReport()">📄 Raport PDF</button>
+                <button class="btn quick-btn" style="background: #17a2b8;" onclick="exportConsumptionChart()">📊 Grafic PNG</button>
+                <button class="btn quick-btn" style="background: #6f42c1;" onclick="shareReport()">📤 Partajează</button>
+            </div>
+
+            <!-- Grafic Consumuri -->
+            <div class="card">
+                <h3>📈 Grafic Consumuri</h3>
+                <div class="chart-container">
+                    <canvas id="consumptionChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Tabel Consumuri -->
+            <div class="card">
+                <h3>📊 Tabel Consumuri</h3>
+                <div id="consumptionTable">
+                    <p style="text-align: center; color: #666;">Se încarcă datele...</p>
+                </div>
+            </div>
+
+            <!-- Calcularea Costurilor -->
+            <div class="card">
+                <h3>💰 Calcularea Costurilor</h3>
+                <div class="costs-grid">
+                    <div class="cost-item">
+                        <label>Preț apă (RON/mc):</label>
+                        <input type="number" id="waterPrice" value="15.50" step="0.01" onchange="updateCosts()">
+                    </div>
+                    <div class="cost-item">
+                        <label>Preț gaz (RON/mc):</label>
+                        <input type="number" id="gasPrice" value="3.20" step="0.01" onchange="updateCosts()">
+                    </div>
+                    <div class="cost-item">
+                        <label>Preț electricitate (RON/kWh):</label>
+                        <input type="number" id="electricPrice" value="0.65" step="0.01" onchange="updateCosts()">
+                    </div>
+                </div>
+                <div id="costsSummary">
+                    <p style="text-align: center; color: #666;">Configurați prețurile de mai sus</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secțiunea Statistici -->
+        <div class="section" id="stats">
+            <!-- ... conținut Statistici ... -->
+        </div>
     </div>
 
-    <!-- IMPORTANT: Script-ul principal TREBUIE să fie ultimul și cu defer -->
+    <!-- Form Popup și delete overlay -->
+    <!-- ... elemente popup ... -->
+
+    <!-- Reset Data Button -->
+    <div class="reset-container">
+        <button class="reset-btn" onclick="resetAllData()" title="Reset Date - Păstrează setările de sincronizare">
+            🗑️ <span class="reset-text">Reset Date</span>
+        </button>
+    </div>
+
+    <!-- Scriptul principal (defer) -->
     <script src="script.js" defer></script>
 </body>
 </html>
