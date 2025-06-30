@@ -1,59 +1,21 @@
 {
   "name": "📊 Indexuri & Reminder-uri v3.0",
   "short_name": "Indexuri v3.0",
-  "description": "Aplicație PWA pentru managementul indexurilor de utilități cu sincronizare în timp real",
+  "description": "Aplicație PWA pentru managementul indexurilor de utilități",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4CAF50",
-  "orientation": "portrait-primary",
-  "scope": "/",
-  "lang": "ro",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot-mobile.png",
-      "sizes": "360x640",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Interface mobilă pentru indexuri"
-    },
-    {
-      "src": "screenshot-desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Interface desktop cu grafice"
-    }
-  ],
-  "categories": ["utilities", "productivity"],
-  "shortcuts": [
-    {
-      "name": "Citește indexuri",
-      "short_name": "Indexuri",
-      "description": "Accesează rapid secțiunea de indexuri",
-      "url": "/?tab=utilities",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Vezi rapoarte",
-      "short_name": "Rapoarte",
-      "description": "Accesează graficele și rapoartele",
-      "url": "/?tab=reports",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "type": "image/png"
     }
   ]
 }
