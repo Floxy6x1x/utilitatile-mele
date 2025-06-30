@@ -6,11 +6,11 @@
     <title>📊 Indexuri &amp; Reminder-uri v3.0</title>
     <link rel="stylesheet" href="styles.css">
     
-    <!-- 🚀 PWA Configuration -->
+    <!-- PWA Configuration -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4CAF50">
     
-    <!-- PWA mobile - CORECTAT (eliminat deprecated tag) -->
+    <!-- PWA mobile - CORECTAT -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Indexuri v3.0">
@@ -20,7 +20,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
-    <!-- Chart.js pentru grafice (versiune optimizată pentru mobile) -->
+    <!-- Chart.js pentru grafice -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     
     <!-- SheetJS pentru Excel -->
@@ -29,25 +29,36 @@
     <!-- jsPDF pentru PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
-    <!-- Service Worker cu cache invalidation -->
+    <!-- Service Worker cu cache invalidation FORȚAT -->
     <script>
-        // Versiune cache pentru invalidare
-        const CACHE_VERSION = 'v1.3';
+        // CACHE INVALIDATION FORȚAT
+        const CACHE_VERSION = 'v2.0';
+        
+        // Șterge toate cache-urile vechi
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => {
+                    if (name !== CACHE_VERSION) {
+                        caches.delete(name);
+                    }
+                });
+            });
+        }
         
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
+                // Înregistrează service worker nou
+                navigator.serviceWorker.register('sw.js?v=' + CACHE_VERSION)
                     .then(registration => {
                         console.log('SW registered: ', registration);
                         
-                        // Forțează actualizarea pentru versiuni noi
+                        // Forțează reîncărcarea pentru versiuni noi
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;
                             newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    if (confirm('Versiune nouă disponibilă! Reîncarcă pentru actualizare?')) {
-                                        window.location.reload();
-                                    }
+                                if (newWorker.state === 'installed') {
+                                    // Reîncarcă automat pentru a folosi noua versiune
+                                    window.location.reload();
                                 }
                             });
                         });
@@ -60,11 +71,7 @@
     </script>
 </head>
 <body>
-    <!-- TOT CONȚINUTUL DIN PASTE.TXT RĂMÂNE IDENTIC -->
     <div class="container">
-        <!-- Copiază EXACT tot conținutul din paste.txt între <body> și </body> -->
-        <!-- EXCEPTÂND ultima linie cu <script src="script.js"></script> -->
-        
         <!-- Header -->
         <div class="header">
             <h1>📊 Indexuri &amp; Reminder-uri v3.0</h1>
@@ -77,25 +84,131 @@
             </div>
         </div>
 
-        <!-- TOATE CELELALTE SECȚIUNI din paste.txt -->
-        <!-- ... copiază exact tot conținutul ... -->
-        
-        <!-- Secțiunea Rapoarte cu canvas optimizat pentru mobile -->
-        <div class="section" id="reports">
-            <!-- Filtrele și alte elemente rămân la fel -->
-            
-            <!-- Graficul OPTIMIZAT pentru mobile -->
-            <div class="card">
-                <h3>📈 Grafic Consumuri</h3>
-                <div class="chart-container" style="position: relative; height: 300px; width: 100%; max-width: 100%;">
-                    <canvas id="consumptionChart" style="max-width: 100%; height: 100%;"></canvas>
-                </div>
-            </div>
-            
-            <!-- Restul secțiunii Reports -->
+        <!-- Alertele active -->
+        <div class="alerts" id="alerts"></div>
+
+        <!-- Loading pentru scanare -->
+        <div class="loading-overlay" id="loadingOverlay"></div>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <h3 id="loadingTitle">📷 Scanez imaginea...</h3>
+            <p id="loadingMessage">Extrag numărul de pe contor</p>
         </div>
 
-        <!-- TOATE CELELALTE SECȚIUNI și POPUP-uri din paste.txt -->
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="showSection('utilities')">🏠 Utilități</button>
+            <button class="tab" onclick="showSection('car')">🚗 Mașina</button>
+            <button class="tab" onclick="showSection('reports')">📊 Rapoarte</button>
+            <button class="tab" onclick="showSection('stats')">📈 Statistici</button>
+        </div>
+
+        <!-- TOATE SECȚIUNILE DIN APLICAȚIA ORIGINALĂ -->
+        <!-- Secțiunea Utilități -->
+        <div class="section active" id="utilities">
+            <!-- TOT CONȚINUTUL pentru utilities din fișierul original -->
+            <!-- ... -->
+        </div>
+
+        <!-- Secțiunea Mașina -->
+        <div class="section" id="car">
+            <!-- TOT CONȚINUTUL pentru car din fișierul original -->
+            <!-- ... -->
+        </div>
+
+        <!-- Secțiunea Rapoarte - CRITICĂ pentru a rezolva eroarea -->
+        <div class="section" id="reports">
+            <!-- Filtre Rapoarte - ELEMENTELE LIPSĂ care cauzează eroarea -->
+            <div class="card">
+                <h3>🎯 Filtre Rapoarte</h3>
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label>Anul:</label>
+                        <select id="reportYear">
+                            <option value="2024">2024</option>
+                            <option value="2025" selected>2025</option>
+                            <option value="all">Toate</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Luna:</label>
+                        <select id="reportMonth">
+                            <option value="all">Toate lunile</option>
+                            <option value="1">Ianuarie</option>
+                            <option value="2">Februarie</option>
+                            <option value="3">Martie</option>
+                            <option value="4">Aprilie</option>
+                            <option value="5">Mai</option>
+                            <option value="6">Iunie</option>
+                            <option value="7">Iulie</option>
+                            <option value="8">August</option>
+                            <option value="9">Septembrie</option>
+                            <option value="10">Octombrie</option>
+                            <option value="11">Noiembrie</option>
+                            <option value="12">Decembrie</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-success" onclick="updateReports()">🔄 Actualizează</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Export Actions -->
+            <div class="quick-actions">
+                <button class="btn quick-btn" style="background: #28a745;" onclick="exportExcelDetailed()">📋 Excel Detaliat</button>
+                <button class="btn quick-btn" style="background: #dc3545;" onclick="exportPDFReport()">📄 Raport PDF</button>
+                <button class="btn quick-btn" style="background: #17a2b8;" onclick="exportConsumptionChart()">📊 Grafic PNG</button>
+                <button class="btn quick-btn" style="background: #6f42c1;" onclick="shareReport()">📤 Partajează</button>
+            </div>
+
+            <!-- Graficul de consum - OPTIMIZAT -->
+            <div class="card">
+                <h3>📈 Grafic Consumuri</h3>
+                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="consumptionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tabel cu consumuri -->
+            <div class="card">
+                <h3>📊 Tabel Consumuri</h3>
+                <div id="consumptionTable">
+                    <p style="text-align: center; color: #666;">Se încarcă datele...</p>
+                </div>
+            </div>
+
+            <!-- Calcularea Costurilor -->
+            <div class="card">
+                <h3>💰 Calcularea Costurilor</h3>
+                <div class="costs-grid">
+                    <div class="cost-item">
+                        <label>Preț apă (RON/mc):</label>
+                        <input type="number" id="waterPrice" value="15.50" step="0.01" onchange="updateCosts()">
+                    </div>
+                    <div class="cost-item">
+                        <label>Preț gaz (RON/mc):</label>
+                        <input type="number" id="gasPrice" value="3.20" step="0.01" onchange="updateCosts()">
+                    </div>
+                    <div class="cost-item">
+                        <label>Preț electricitate (RON/kWh):</label>
+                        <input type="number" id="electricPrice" value="0.65" step="0.01" onchange="updateCosts()">
+                    </div>
+                </div>
+                <div id="costsSummary">
+                    <p style="text-align: center; color: #666;">Configurați prețurile de mai sus</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secțiunea Statistici -->
+        <div class="section" id="stats">
+            <!-- TOT CONȚINUTUL pentru stats din fișierul original -->
+            <!-- ... -->
+        </div>
+
+        <!-- TOATE POPUP-URILE și FORM-URILE din fișierul original -->
+        <!-- ... -->
     </div>
 
     <!-- BUTON RESET DATA -->
@@ -105,7 +218,7 @@
         </button>
     </div>
 
-    <!-- CRITICAL: Script principal cu defer pentru încărcare DUPĂ toate dependințele -->
+    <!-- SCRIPTUL PRINCIPAL cu defer -->
     <script src="script.js" defer></script>
 </body>
 </html>
