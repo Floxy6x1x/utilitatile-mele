@@ -349,7 +349,7 @@ class EnhancedUtilitiesApp {
         }
     }
 
-    // === UI UPDATES (păstrează din versiunea precedentă) ===
+    // === UI UPDATES ===
     updateUI() {
         this.updateIndexDisplays();
         this.updateStatistics();
@@ -717,9 +717,11 @@ class EnhancedUtilitiesApp {
         }
         
         // Setează prețurile în UI
-        document.getElementById('waterPrice').value = this.costs.water;
-        document.getElementById('gasPrice').value = this.costs.gas;
-        document.getElementById('electricPrice').value = this.costs.electric;
+        if (document.getElementById('waterPrice')) {
+            document.getElementById('waterPrice').value = this.costs.water;
+            document.getElementById('gasPrice').value = this.costs.gas;
+            document.getElementById('electricPrice').value = this.costs.electric;
+        }
         
         this.updateReports();
     }
@@ -904,266 +906,7 @@ class EnhancedUtilitiesApp {
         tableEl.innerHTML = html;
     }
 
-    // === EXPORT FUNCTIONS ===
-    quickExportExcel() {
-        this.showLoading('📋 Generez Excel...', 'Pregătesc datele pentru export...');
-        
-        setTimeout(() => {
-            this.exportExcelDetailed();
-            this.hideLoading();
-        }, 1000);
-    }
-
-    exportExcelDetailed() {
-        const year = document.getElementById('reportYear').value;
-        const month = document.getElementById('reportMonth').value;
-        
-        // Creează workbook
-        const wb = XLSX.utils.book_new();
-        
-        // Sheet 1: Consumuri
-        const consumptions = this.getFilteredConsumptions(year, month);
-        const consumptionData = consumptions.map(cons => ({
-            'Data': new Date(cons.date).toLocaleDateString('ro-RO'),
-            'Perioada': cons.period,
-            'Tip Utilitate': cons.name,
-            'Consum': cons.consumption,
-            'Unitate': cons.unit,
-            'Cost (RON)': this.calculateCostForConsumption(cons).toFixed(2)
-        }));
-        
-        const ws1 = XLSX.utils.json_to_sheet(consumptionData);
-        XLSX.utils.book_append_sheet(wb, ws1, "Consumuri");
-        
-        // Sheet 2: Istoric complet
-        const allHistory = this.getAllHistory();
-        const historyData = allHistory.map(entry => ({
-            'Data': new Date(entry.date).toLocaleDateString('ro-RO'),
-            'Utilitate': entry.name,
-            'Valoare': entry.value,
-            'Unitate': entry.unit
-        }));
-        
-        const ws2 = XLSX.utils.json_to_sheet(historyData);
-        XLSX.utils.book_append_sheet(wb, ws2, "Istoric Complet");
-        
-        // Sheet 3: Sumar costuri
-        const costsSummary = this.generateCostsSummary(year, month);
-        const ws3 = XLSX.utils.json_to_sheet(costsSummary);
-        XLSX.utils.book_append_sheet(wb, ws3, "Costuri");
-        
-        // Salvează fișierul
-        const fileName = `Indexuri_${year === 'all' ? 'Toate' : year}_${month === 'all' ? 'Toate' : 'Luna' + month}_${new Date().toISOString().split('T')[0]}.xlsx`;
-        XLSX.writeFile(wb, fileName);
-        
-        this.showAlert('Excel generat cu succes!', 'success');
-    }
-
-    calculateCostForConsumption(cons) {
-        if (cons.type === 'water') return cons.consumption * this.costs.water;
-        if (cons.type === 'gas') return cons.consumption * this.costs.gas;
-        if (cons.type === 'electric') return cons.consumption * this.costs.electric;
-        return 0;
-    }
-
-    generateCostsSummary(year, month) {
-        const consumptions = this.getFilteredConsumptions(year, month);
-        const summary = [];
-        
-        // Grupează pe tipuri
-        const totals = {
-            water: { consumption: 0, cost: 0 },
-            gas: { consumption: 0, cost: 0 },
-            electric: { consumption: 0, cost: 0 }
-        };
-        
-        consumptions.forEach(cons => {
-            totals[cons.type].consumption += cons.consumption;
-            totals[cons.type].cost += this.calculateCostForConsumption(cons);
-        });
-        
-        Object.keys(totals).forEach(type => {
-            const typeNames = { water: 'Apă', gas: 'Gaz', electric: 'Electricitate' };
-            const units = { water: 'mc', gas: 'mc', electric: 'kWh' };
-            
-            if (totals[type].consumption > 0) {
-                summary.push({
-                    'Tip Utilitate': typeNames[type],
-                    'Consum Total': totals[type].consumption,
-                    'Unitate': units[type],
-                    'Preț Unitar (RON)': this.costs[type],
-                    'Cost Total (RON)': totals[type].cost.toFixed(2)
-                });
-            }
-        });
-        
-        // Adaugă totalul general
-        const totalCost = Object.values(totals).reduce((sum, t) => sum + t.cost, 0);
-        summary.push({
-            'Tip Utilitate': 'TOTAL GENERAL',
-            'Consum Total': '',
-            'Unitate': '',
-            'Preț Unitar (RON)': '',
-            'Cost Total (RON)': totalCost.toFixed(2)
-        });
-        
-        return summary;
-    }
-
-    exportPDFReport() {
-        this.showLoading('📄 Generez PDF...', 'Creez raportul detaliat...');
-        
-        setTimeout(() => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            const year = document.getElementById('reportYear').value;
-            const month = document.getElementById('reportMonth').value;
-            
-            // Header
-            doc.setFontSize(20);
-            doc.text('Raport Indexuri & Consumuri', 20, 20);
-            
-            doc.setFontSize(12);
-            doc.text(`Perioada: ${year === 'all' ? 'Toate Anile' : year} ${month === 'all' ? '(Toate Lunile)' : '(Luna ' + month + ')'}`, 20, 30);
-            doc.text(`Generat: ${new Date().toLocaleDateString('ro-RO')}`, 20, 35);
-            doc.text(`De către: ${this.currentUser.name || 'Utilizator'}`, 20, 40);
-            
-            // Linia de separare
-            doc.line(20, 45, 190, 45);
-            
-            let yPos = 55;
-            
-            // Consumuri
-            doc.setFontSize(16);
-            doc.text('Consumuri pe Perioada Selectată', 20, yPos);
-            yPos += 10;
-            
-            const consumptions = this.getFilteredConsumptions(year, month);
-            if (consumptions.length === 0) {
-                doc.setFontSize(12);
-                doc.text('Nu există date pentru perioada selectată.', 20, yPos);
-            } else {
-                doc.setFontSize(10);
-                
-                // Grupează consumurile
-                const grouped = {};
-                consumptions.forEach(cons => {
-                    if (!grouped[cons.name]) {
-                        grouped[cons.name] = { total: 0, unit: cons.unit, cost: 0 };
-                    }
-                    grouped[cons.name].total += cons.consumption;
-                    grouped[cons.name].cost += this.calculateCostForConsumption(cons);
-                });
-                
-                Object.keys(grouped).forEach(name => {
-                    const data = grouped[name];
-                    doc.text(`${name}: ${data.total.toFixed(2)} ${data.unit} (${data.cost.toFixed(2)} RON)`, 20, yPos);
-                    yPos += 6;
-                });
-                
-                // Total costuri
-                const totalCost = Object.values(grouped).reduce((sum, data) => sum + data.cost, 0);
-                yPos += 5;
-                doc.setFontSize(12);
-                doc.text(`TOTAL COSTURI: ${totalCost.toFixed(2)} RON`, 20, yPos);
-            }
-            
-            // Footer
-            doc.setFontSize(8);
-            doc.text('Generat cu Aplicația Indexuri & Reminder-uri v3.0', 20, 280);
-            
-            // Salvează PDF
-            const fileName = `Raport_Indexuri_${year === 'all' ? 'Toate' : year}_${month === 'all' ? 'Toate' : 'Luna' + month}_${new Date().toISOString().split('T')[0]}.pdf`;
-            doc.save(fileName);
-            
-            this.hideLoading();
-            this.showAlert('Raport PDF generat cu succes!', 'success');
-        }, 1500);
-    }
-
-    exportConsumptionChart() {
-        if (!this.chart) {
-            this.showAlert('Nu există grafic pentru export!', 'warning');
-            return;
-        }
-        
-        // Exportă graficul ca imagine PNG
-        const canvas = document.getElementById('consumptionChart');
-        const url = canvas.toDataURL('image/png');
-        
-        const link = document.createElement('a');
-        link.download = `Grafic_Consumuri_${new Date().toISOString().split('T')[0]}.png`;
-        link.href = url;
-        link.click();
-        
-        this.showAlert('Grafic exportat ca imagine!', 'success');
-    }
-
-    shareReport() {
-        const year = document.getElementById('reportYear').value;
-        const month = document.getElementById('reportMonth').value;
-        const consumptions = this.getFilteredConsumptions(year, month);
-        
-        if (consumptions.length === 0) {
-            this.showAlert('Nu există date pentru partajare!', 'warning');
-            return;
-        }
-        
-        // Creează un text sumar pentru partajare
-        let shareText = `📊 Raport Consumuri ${year} ${month !== 'all' ? '(Luna ' + month + ')' : ''}\n\n`;
-        
-        const grouped = {};
-        consumptions.forEach(cons => {
-            if (!grouped[cons.name]) {
-                grouped[cons.name] = { total: 0, unit: cons.unit, cost: 0 };
-            }
-            grouped[cons.name].total += cons.consumption;
-            grouped[cons.name].cost += this.calculateCostForConsumption(cons);
-        });
-        
-        Object.keys(grouped).forEach(name => {
-            const data = grouped[name];
-            shareText += `${name}: ${data.total.toFixed(2)} ${data.unit} (${data.cost.toFixed(2)} RON)\n`;
-        });
-        
-        const totalCost = Object.values(grouped).reduce((sum, data) => sum + data.cost, 0);
-        shareText += `\n💰 TOTAL: ${totalCost.toFixed(2)} RON`;
-        shareText += `\n\nGenerat cu Aplicația Indexuri v3.0`;
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'Raport Consumuri',
-                text: shareText
-            });
-        } else if (navigator.clipboard) {
-            navigator.clipboard.writeText(shareText).then(() => {
-                this.showAlert('Raport copiat în clipboard!', 'success');
-            });
-        } else {
-            // Fallback
-            const overlay = document.createElement('div');
-            overlay.className = 'form-overlay';
-            overlay.style.display = 'block';
-            
-            overlay.innerHTML = `
-                <div class="form-popup">
-                    <h3>📤 Partajează Raport</h3>
-                    <div class="form-group">
-                        <label>Copiați textul de mai jos:</label>
-                        <textarea readonly style="height: 200px; font-size: 12px;">${shareText}</textarea>
-                    </div>
-                    <div class="form-buttons">
-                        <button class="btn btn-full" style="background: #666;" onclick="this.closest('.form-overlay').remove()">❌ Închide</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(overlay);
-        }
-    }
-
-    // === UTILITY METHODS (păstrate din versiunea precedentă) ===
+    // === CALCULĂRI ===
     calculateMonthlyConsumptions() {
         const consumptions = [];
         const utilities = [
@@ -1372,7 +1115,7 @@ class EnhancedUtilitiesApp {
         document.getElementById('loading').style.display = 'none';
     }
 
-    // === FORM HANDLING (păstrate din versiunea precedentă) ===
+    // === FORM HANDLING ===
     showIndexForm(type, name) {
         this.currentType = type;
         this.currentName = name;
@@ -1527,9 +1270,6 @@ class EnhancedUtilitiesApp {
         this.currentName = '';
     }
 
-    // Placeholder pentru alte funcții... (DELETE, BULK, CAMERA, etc.)
-    // [Aici ar continua cu toate celelalte funcții din versiunea precedentă]
-    
     // === SYNC OPERATIONS ===
     manualSync() {
         if (!this.isConnected || !this.syncSettings.enabled) {
@@ -1546,7 +1286,6 @@ class EnhancedUtilitiesApp {
         }, 1500);
     }
 
-    // Placeholder pentru funcțiile rămase din versiunea precedentă
     markAllIndexesSent() {
         const utilities = ['waterBath', 'waterKitchen', 'gas', 'electric'];
         let marked = 0;
@@ -1565,11 +1304,6 @@ class EnhancedUtilitiesApp {
         } else {
             this.showAlert('Nu există indexuri de marcat!', 'warning');
         }
-    }
-
-    showBulkIndexForm() {
-        // Implementare similară cu versiunea precedentă
-        this.showAlert('Funcție în dezvoltare...', 'info');
     }
 
     // === CLEANUP ===
@@ -1649,37 +1383,19 @@ function showPaymentForm(type, name) { app.showPaymentForm(type, name); }
 function showCarForm(type, name) { app.showCarForm(type, name); }
 function saveForm() { app.saveForm(); }
 function hideForm() { app.hideForm(); }
-function showDeleteOptions(type, name) { app.showDeleteOptions(type, name); }
-function hideDeleteOptions() { app.hideDeleteOptions(); }
 function markAllIndexesSent() { app.markAllIndexesSent(); }
-function showBulkIndexForm() { app.showBulkIndexForm(); }
 function manualSync() { app.manualSync(); }
-function quickExportExcel() { app.quickExportExcel(); }
-function exportExcelDetailed() { app.exportExcelDetailed(); }
-function exportPDFReport() { app.exportPDFReport(); }
-function exportConsumptionChart() { app.exportConsumptionChart(); }
-function shareReport() { app.shareReport(); }
 function updateReports() { app.updateReports(); }
 function updateCosts() { app.updateCosts(); }
 function setupFirebasePartner() { app.setupFirebasePartner(); }
-function showSyncSettings() { app.showSyncSettings(); }
 function clearAllData() { app.clearAllData(); }
 function resetAllData() { app.resetAllData(); }
-function exportToLink() { app.exportToLink(); }
-function showImportFromLink() { app.showImportFromLink(); }
-function scanIndexFromImage(file) { app.scanIndexFromImage(file); }
-function scanSpecificIndex(file, type, name) { app.scanSpecificIndex(file, type, name); }
 
 // Inițializează aplicația îmbunătățită
 let app;
 
 document.addEventListener('DOMContentLoaded', function() {
     app = new EnhancedUtilitiesApp();
-    
-    // Verifică import la încărcare
-    if (app.checkForImportOnLoad) {
-        app.checkForImportOnLoad();
-    }
     
     // Event listeners pentru formulare
     document.addEventListener('keydown', function(e) {
@@ -1691,13 +1407,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             app.hideForm();
-            if (app.hideDeleteOptions) app.hideDeleteOptions();
-            if (app.hideBulkForm) app.hideBulkForm();
-            if (app.hideScanResult) app.hideScanResult();
-            if (app.hidePartnerSetup) app.hidePartnerSetup();
-            if (app.hideImportDialog) app.hideImportDialog();
-            if (app.hideManualCopy) app.hideManualCopy();
-            if (app.hideSyncSettings) app.hideSyncSettings();
         }
         
         if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
