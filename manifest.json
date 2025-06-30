@@ -1,26 +1,85 @@
 {
-  "name": "Indexuri & Reminder-uri",
-  "short_name": "Indexuri",
-  "description": "Gestionați indexurile utilitățiilor și reminder-urile auto",
+  "name": "Indexuri & Reminder-uri v3.0",
+  "short_name": "Indexuri v3.0",
+  "description": "Gestionarea avansată a indexurilor cu sincronizare în timp real și export-uri Excel/PDF",
   "theme_color": "#4CAF50",
   "background_color": "#667eea",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "scope": "/",
   "start_url": "/",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png", 
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "categories": ["utilities", "productivity"],
+  "categories": ["utilities", "productivity", "finance"],
   "lang": "ro",
-  "dir": "ltr"
+  "dir": "ltr",
+  "screenshots": [
+    {
+      "src": "screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "screenshot-mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Index rapid",
+      "short_name": "Index",
+      "description": "Introduceți rapid indexurile",
+      "url": "/?action=quick-index",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Export Excel",
+      "short_name": "Excel",
+      "description": "Exportați datele în Excel",
+      "url": "/?action=export-excel",
+      "icons": [
+        {
+          "src": "icon-192.png", 
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Rapoarte",
+      "short_name": "Rapoarte",
+      "description": "Vezi grafice și statistici",
+      "url": "/?action=reports",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }
