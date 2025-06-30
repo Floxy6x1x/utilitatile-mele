@@ -5,36 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 Indexuri &amp; Reminder-uri v3.0</title>
     <link rel="stylesheet" href="styles.css">
-    
-    <!-- PWA Configuration -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4CAF50">
-    
-    <!-- PWA mobile - META TAG-URI CORECTE -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Indexuri v3.0">
     <link rel="apple-touch-icon" href="icon-192.png">
-    
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
-    <!-- Chart.js pentru grafice - VERSIUNE STABILĂ PENTRU MOBILE -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    
-    <!-- SheetJS pentru Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <!-- jsPDF pentru PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- Service Worker cu cache invalidation FORȚAT -->
     <script>
-        // CACHE INVALIDATION FORȚAT pentru versiuni noi
-        const CACHE_VERSION = 'v2.2';
-        
-        // Șterge toate cache-urile vechi
+        const CACHE_VERSION = 'v2.3';
         if ('caches' in window) {
             caches.keys().then(names => {
                 names.forEach(name => {
@@ -45,21 +28,15 @@
                 });
             });
         }
-        
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Înregistrează service worker cu versiune pentru cache busting
                 navigator.serviceWorker.register('sw.js?v=' + CACHE_VERSION)
                     .then(registration => {
                         console.log('SW registered: ', registration);
-                        
-                        // Forțează reîncărcarea pentru versiuni noi
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // Reîncarcă automat pentru a folosi noua versiune
-                                    console.log('Reîncărcare pentru versiunea nouă...');
                                     window.location.reload();
                                 }
                             });
@@ -74,40 +51,26 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <h1>📊 Indexuri &amp; Reminder-uri v3.0</h1>
             <p>Sincronizare în timp real • Export Excel/PDF • Grafice interactive</p>
-            <div id="syncIndicator" class="sync-indicator disconnected">
-                ⚠️ Nu e configurat partenerul
-            </div>
-            <div id="userIndicator" class="user-indicator">
-                👤 <span id="currentUser">Neautentificat</span>
-            </div>
+            <div id="syncIndicator" class="sync-indicator disconnected">⚠️ Nu e configurat partenerul</div>
+            <div id="userIndicator" class="user-indicator">👤 <span id="currentUser">Neautentificat</span></div>
         </div>
-
-        <!-- Alertele active -->
         <div class="alerts" id="alerts"></div>
-
-        <!-- Loading pentru scanare -->
         <div class="loading-overlay" id="loadingOverlay"></div>
         <div class="loading" id="loading">
             <div class="spinner"></div>
             <h3 id="loadingTitle">📷 Scanez imaginea...</h3>
             <p id="loadingMessage">Extrag numărul de pe contor</p>
         </div>
-
-        <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" onclick="showSection('utilities')">🏠 Utilități</button>
             <button class="tab" onclick="showSection('car')">🚗 Mașina</button>
             <button class="tab" onclick="showSection('reports')">📊 Rapoarte</button>
             <button class="tab" onclick="showSection('stats')">📈 Statistici</button>
         </div>
-
-        <!-- Secțiunea Utilități -->
         <div class="section active" id="utilities">
-            <!-- Quick Actions -->
             <div class="quick-actions">
                 <button class="btn quick-btn btn-success" onclick="markAllIndexesSent()">✅ Trimise toate</button>
                 <button class="btn quick-btn btn-warning" onclick="showBulkIndexForm()">📝 Index rapid</button>
@@ -116,11 +79,8 @@
                 <label class="btn quick-btn btn-camera" for="cameraInput">📷 Scanează</label>
                 <input type="file" id="cameraInput" class="hidden" accept="image/*" capture="environment" onchange="scanIndexFromImage(this.files[0])">
             </div>
-
-            <!-- Indexuri Apă -->
             <div class="card">
                 <h3>💧 Indexuri Apă <span class="status-badge" id="waterStatus">📅 Până pe 15</span></h3>
-                
                 <div class="index-grid">
                     <div class="index-info">
                         <div class="index-name">Apometru Baie</div>
@@ -134,7 +94,6 @@
                         <input type="file" id="waterBathCamera" class="hidden" accept="image/*" capture="environment" onchange="scanSpecificIndex(this.files[0], 'waterBath', 'Apometru Baie')">
                     </div>
                 </div>
-                
                 <div class="index-grid">
                     <div class="index-info">
                         <div class="index-name">Apometru Bucătărie</div>
@@ -149,11 +108,8 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Indexuri Gaz & Electricitate -->
             <div class="card">
                 <h3>🔥 Gaz &amp; Electricitate <span class="status-badge" id="gasElectricStatus">📅 Până pe 20</span></h3>
-                
                 <div class="index-grid">
                     <div class="index-info">
                         <div class="index-name">Contor Gaz</div>
@@ -167,7 +123,6 @@
                         <input type="file" id="gasCamera" class="hidden" accept="image/*" capture="environment" onchange="scanSpecificIndex(this.files[0], 'gas', 'Contor Gaz')">
                     </div>
                 </div>
-                
                 <div class="index-grid">
                     <div class="index-info">
                         <div class="index-name">Contor Electricitate</div>
@@ -182,11 +137,8 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Plată Asociație -->
             <div class="card">
                 <h3>🏢 Asociația de Proprietari</h3>
-                
                 <div class="index-grid">
                     <div class="index-info">
                         <div class="index-name">Plată lunară</div>
@@ -200,12 +152,9 @@
                 </div>
             </div>
         </div>
-
-        <!-- Secțiunea Mașina -->
         <div class="section" id="car">
             <div class="card">
                 <h3>🚗 Întreținere Mașină</h3>
-                
                 <div class="index-grid">
                     <div class="index-info">
                         <div class="index-name">Schimb Ulei</div>
@@ -218,10 +167,8 @@
                     </div>
                 </div>
             </div>
-
             <div class="card">
                 <h3>📋 Documente Auto</h3>
-                
                 <div class="index-grid">
                     <div class="index-info">
                         <div class="index-name">Rovinietă</div>
@@ -233,7 +180,6 @@
                         <button class="btn btn-danger" onclick="showDeleteOptions('vignette', 'Rovinietă')">🗑️</button>
                     </div>
                 </div>
-                
                 <div class="index-grid">
                     <div class="index-info">
                         <div class="index-name">Asigurare</div>
@@ -245,7 +191,6 @@
                         <button class="btn btn-danger" onclick="showDeleteOptions('insurance', 'Asigurare')">🗑️</button>
                     </div>
                 </div>
-                
                 <div class="index-grid">
                     <div class="index-info">
                         <div class="index-name">ITP</div>
@@ -259,10 +204,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Secțiunea Rapoarte - CRITICĂ pentru a rezolva eroarea -->
         <div class="section" id="reports">
-            <!-- Filtre Rapoarte - ELEMENTELE LIPSĂ care cauzează eroarea -->
             <div class="card">
                 <h3>🎯 Filtre Rapoarte</h3>
                 <div class="filter-grid">
@@ -297,32 +239,24 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Quick Export Actions -->
             <div class="quick-actions">
                 <button class="btn quick-btn" style="background: #28a745;" onclick="exportExcelDetailed()">📋 Excel Detaliat</button>
                 <button class="btn quick-btn" style="background: #dc3545;" onclick="exportPDFReport()">📄 Raport PDF</button>
                 <button class="btn quick-btn" style="background: #17a2b8;" onclick="exportConsumptionChart()">📊 Grafic PNG</button>
                 <button class="btn quick-btn" style="background: #6f42c1;" onclick="shareReport()">📤 Partajează</button>
             </div>
-
-            <!-- Graficul de consum - OPTIMIZAT pentru mobile -->
             <div class="card">
                 <h3>📈 Grafic Consumuri</h3>
                 <div class="chart-container" style="position: relative; height: 300px; width: 100%; max-width: 100%;">
                     <canvas id="consumptionChart" style="max-width: 100%; height: 100%;"></canvas>
                 </div>
             </div>
-
-            <!-- Tabel cu consumuri -->
             <div class="card">
                 <h3>📊 Tabel Consumuri</h3>
                 <div id="consumptionTable">
                     <p style="text-align: center; color: #666;">Se încarcă datele...</p>
                 </div>
             </div>
-
-            <!-- Calcularea Costurilor -->
             <div class="card">
                 <h3>💰 Calcularea Costurilor</h3>
                 <div class="costs-grid">
@@ -340,19 +274,16 @@
                     </div>
                 </div>
                 <div id="costsSummary">
-                    <p style="text-align: center; color: #666;">Configurați prețurile de mai sus</p>
+                    <p style="textang-align: center; color: #666;">Configurați prețurile de mai sus</p>
                 </div>
             </div>
         </div>
-
-        <!-- Secțiunea Statistici -->
         <div class="section" id="stats">
             <div class="quick-actions">
                 <button class="btn quick-btn" style="background: #9C27B0;" onclick="exportToLink()">📤 Partajează datele</button>
                 <button class="btn quick-btn" style="background: #FF5722;" onclick="showImportFromLink()">📥 Importă date</button>
                 <button class="btn quick-btn btn-danger" onclick="clearAllData()">🗑️ Șterge Tot</button>
             </div>
-
             <div class="stats-grid">
                 <div class="stat-card">
                     <h4>📊 Indexuri trimise luna aceasta</h4>
@@ -371,7 +302,6 @@
                     <div class="value" id="statConnectedUsers">1</div>
                 </div>
             </div>
-
             <div class="card">
                 <h3>📈 Consumuri Lunare</h3>
                 <div id="consumptionList">
@@ -381,14 +311,12 @@
                     </div>
                 </div>
             </div>
-
             <div class="card">
                 <h3>🔔 Reminder-uri Active</h3>
                 <div id="remindersList">
                     <p style="color: #666; text-align: center; padding: 20px;">Nu există reminder-uri active</p>
                 </div>
             </div>
-
             <div class="card">
                 <h3>🤝 Setări Sincronizare în Timp Real</h3>
                 <div class="sync-settings">
@@ -404,7 +332,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="card">
                 <h3>📋 Istoric Înregistrări</h3>
                 <div id="historyList">
@@ -413,8 +340,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Form Popup -->
     <div class="form-overlay" id="formOverlay">
         <div class="form-popup">
             <h3 id="formTitle">Adaugă Index</h3>
@@ -440,8 +365,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Overlay pentru opțiuni de ștergere -->
     <div class="form-overlay" id="deleteOverlay">
         <div class="form-popup">
             <h3 id="deleteTitle">Opțiuni Ștergere</h3>
@@ -451,15 +374,11 @@
             </div>
         </div>
     </div>
-
-    <!-- BUTON RESET DATA -->
     <div class="reset-container">
         <button class="reset-btn" onclick="resetAllData()" title="Reset Date - Păstrează setările de sincronizare">
             🗑️ <span class="reset-text">Reset Date</span>
         </button>
     </div>
-
-    <!-- SCRIPTUL PRINCIPAL cu defer pentru încărcare DUPĂ toate dependințele -->
     <script src="script.js" defer></script>
 </body>
 </html>
