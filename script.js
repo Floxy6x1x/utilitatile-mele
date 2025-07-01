@@ -1,4 +1,4 @@
-// Utilitățile Mele - Script principal
+// Utilitățile Mele - Script principal cu sincronizare bidirectională
 
 // Variabile globale
 let currentTab = 'home';
@@ -8,7 +8,17 @@ let syncInterval = null;
 let deferredPrompt = null;
 let isOnline = navigator.onLine;
 
-// Inițializare aplicație
+// Variabile pentru sync bidirectional
+let syncConfig = {
+    enabled: false,
+    familyCode: null,
+    lastSyncTimestamp: 0,
+    deviceId: null,
+    syncUrl: 'https://api.jsonbin.io/v3/b/', // JSONBin.io pentru demo
+    apiKey: '$2a$10$...' // Înlocuiește cu API key real
+};
+
+// === INIȚIALIZARE APLICAȚIE ===
 document.addEventListener('DOMContentLoaded', function() {
     // Load data
     loadAllData();
@@ -22,6 +32,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup family sync
     setupFamilySync();
     
+    // Inițializează sistemul de sync bidirectional
+    initializeBidirectionalSync();
+    
     // Setup form date to today
     const today = new Date().toISOString().split('T')[0];
     const dateInput = document.getElementById('formDate');
@@ -33,6 +46,335 @@ document.addEventListener('DOMContentLoaded', function() {
     updateUI();
     updateReminders();
 });
+
+// === SISTEM SINCRONIZARE BIDIRECTIONALĂ ===
+
+// Inițializare device ID unic
+function initializeDeviceId() {
+    let deviceId = localStorage.getItem('deviceId');
+    if (!deviceId) {
+        deviceId = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        localStorage.setItem('deviceId', deviceId);
+    }
+    syncConfig.deviceId = deviceId;
+    return deviceId;
+}
+
+// Structura îmbunătățită pentru citiri cu metadata
+function createReading(type, value, date) {
+    return {
+        id: generateReadingId(),
+        type: type,
+        value: parseFloat(value),
+        date: date,
+        timestamp: Date.now(),
+        deviceId: syncConfig.deviceId,
+        syncStatus: 'local', // local, syncing, synced
+        version: 1,
+        lastModified: Date.now()
+    };
+}
+
+function generateReadingId() {
+    return 'reading_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+async function initializeBidirectionalSync() {
+    initializeDeviceId();
+    
+    const familyCode = localStorage.getItem('familyCode');
+    if (familyCode) {
+        syncConfig.familyCode = familyCode;
+        syncConfig.enabled = true;
+        
+        if (isOnline) {
+            await performInitialSync();
+            startContinuousSync();
+        }
+    }
+}
+
+async function performInitialSync() {
+    try {
+        showSyncStatus('🔄 Sincronizare inițială...');
+        
+        // Obține datele de pe server
+        const serverData = await fetchFamilyDataFromServer();
+        
+        if (serverData) {
+            // Merge local cu server data
+            const mergedData = mergeDataSets(familyData, serverData);
+            
+            // Aplică datele merged
+            familyData = mergedData;
+            
+            // Salvează local
+            saveData();
+            updateUI();
+        }
+        
+        // Upload modificările locale la server
+        await uploadLocalChangesToServer();
+        
+        syncConfig.lastSyncTimestamp = Date.now();
+        localStorage.setItem('lastSyncTimestamp', syncConfig.lastSyncTimestamp.toString());
+        
+        showSyncStatus('✅ Sincronizare completă');
+        
+    } catch (error) {
+        console.error('❌ Eroare sincronizare inițială:', error);
+        showSyncStatus('❌ Eroare sincronizare');
+    }
+}
+
+function startContinuousSync() {
+    if (syncInterval) {
+        clearInterval(syncInterval);
+    }
+    
+    // Sync la fiecare 15 secunde
+    syncInterval = setInterval(async () => {
+        if (isOnline && syncConfig.enabled) {
+            await performIncrementalSync();
+        }
+    }, 15000);
+}
+
+async function performIncrementalSync() {
+    try {
+        // Verifică dacă sunt modificări pe server
+        const serverTimestamp = await getServerLastModified();
+        
+        if (serverTimestamp > syncConfig.lastSyncTimestamp) {
+            // Sunt modificări pe server, le preluăm
+            const serverData = await fetchFamilyDataFromServer();
+            if (serverData) {
+                const mergedData = mergeDataSets(familyData, serverData);
+                familyData = mergedData;
+                saveData();
+                updateUI();
+                
+                showAlert('🔄 Date sincronizate de la familie', 'info');
+            }
+        }
+        
+        // Upload modificările locale
+        await uploadLocalChangesToServer();
+        
+        syncConfig.lastSyncTimestamp = Date.now();
+        localStorage.setItem('lastSyncTimestamp', syncConfig.lastSyncTimestamp.toString());
+        
+        updateSyncStatusDisplay();
+        
+    } catch (error) {
+        console.error('❌ Eroare sync incremental:', error);
+    }
+}
+
+// === FUNCȚII SERVER COMMUNICATION ===
+
+async function fetchFamilyDataFromServer() {
+    if (!syncConfig.familyCode) return null;
+    
+    try {
+        // Pentru demo folosim JSONBin.io - în producție folosești Firebase/Supabase
+        const response = await fetch(`${syncConfig.syncUrl}${syncConfig.familyCode}/latest`, {
+            method: 'GET',
+            headers: {
+                'X-Master-Key': syncConfig.apiKey
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            return data.record;
+        }
+    } catch (error) {
+        console.error('❌ Eroare fetch server:', error);
+    }
+    
+    return null;
+}
+
+async function uploadLocalChangesToServer() {
+    if (!syncConfig.familyCode) return;
+    
+    try {
+        const dataToSync = {
+            familyCode: syncConfig.familyCode,
+            readings: familyData.readings || {},
+            carData: familyData.carData || {},
+            prices: familyData.prices || {},
+            lastModified: Date.now(),
+            lastModifiedBy: syncConfig.deviceId,
+            devices: updateDeviceList()
+        };
+        
+        // Pentru demo - în producție folosești Firebase/Supabase
+        const response = await fetch(`${syncConfig.syncUrl}${syncConfig.familyCode}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': syncConfig.apiKey
+            },
+            body: JSON.stringify(dataToSync)
+        });
+        
+        if (response.ok) {
+            // Marchează toate modificările locale ca sincronizate
+            markAllReadingsAsSynced();
+        }
+        
+    } catch (error) {
+        console.error('❌ Eroare upload server:', error);
+    }
+}
+
+async function getServerLastModified() {
+    try {
+        const serverData = await fetchFamilyDataFromServer();
+        return serverData ? serverData.lastModified || 0 : 0;
+    } catch (error) {
+        return 0;
+    }
+}
+
+function updateDeviceList() {
+    const devices = JSON.parse(localStorage.getItem('familyDevices') || '{}');
+    devices[syncConfig.deviceId] = {
+        id: syncConfig.deviceId,
+        name: getDeviceName(),
+        lastSeen: Date.now(),
+        userAgent: navigator.userAgent
+    };
+    
+    localStorage.setItem('familyDevices', JSON.stringify(devices));
+    return devices;
+}
+
+function getDeviceName() {
+    let deviceName = localStorage.getItem('deviceName');
+    if (!deviceName) {
+        const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isTablet = /iPad/i.test(navigator.userAgent);
+        
+        if (isTablet) {
+            deviceName = 'Tablet';
+        } else if (isMobile) {
+            deviceName = 'Telefon';
+        } else {
+            deviceName = 'Computer';
+        }
+        
+        deviceName += '_' + syncConfig.deviceId.substr(-4);
+        localStorage.setItem('deviceName', deviceName);
+    }
+    return deviceName;
+}
+
+// === MERGE LOGIC PENTRU REZOLVAREA CONFLICTELOR ===
+
+function mergeDataSets(localData, serverData) {
+    const merged = {
+        readings: {},
+        carData: {},
+        prices: {},
+        familyCode: localData.familyCode || serverData.familyCode
+    };
+    
+    // Merge readings cu rezolvare conflicte
+    merged.readings = mergeReadings(localData.readings || {}, serverData.readings || {});
+    
+    // Merge car data (ultima modificare câștigă)
+    merged.carData = mergeCarData(localData.carData || {}, serverData.carData || {});
+    
+    // Merge prices (ultima modificare câștigă)
+    merged.prices = mergePrices(localData.prices || {}, serverData.prices || {});
+    
+    return merged;
+}
+
+function mergeReadings(localReadings, serverReadings) {
+    const merged = {};
+    
+    // Obține toate tipurile de citiri
+    const allTypes = new Set([...Object.keys(localReadings), ...Object.keys(serverReadings)]);
+    
+    allTypes.forEach(type => {
+        const localTypeReadings = localReadings[type] || [];
+        const serverTypeReadings = serverReadings[type] || [];
+        
+        // Creează un map cu toate citirile după ID
+        const readingsMap = new Map();
+        
+        // Adaugă citirile locale
+        localTypeReadings.forEach(reading => {
+            readingsMap.set(reading.id || generateReadingId(), reading);
+        });
+        
+        // Adaugă/merge citirile de pe server
+        serverTypeReadings.forEach(reading => {
+            const existingReading = readingsMap.get(reading.id);
+            
+            if (!existingReading) {
+                // Citire nouă de pe server
+                readingsMap.set(reading.id, reading);
+            } else {
+                // Conflict - folosește cea mai recentă
+                if (reading.lastModified > existingReading.lastModified) {
+                    readingsMap.set(reading.id, reading);
+                }
+            }
+        });
+        
+        // Convertește înapoi la array și filtrează ștergerile
+        merged[type] = Array.from(readingsMap.values())
+            .filter(reading => !reading.deleted)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+    });
+    
+    return merged;
+}
+
+function mergeCarData(localCarData, serverCarData) {
+    const merged = { ...localCarData };
+    
+    Object.keys(serverCarData).forEach(key => {
+        const localValue = localCarData[key];
+        const serverValue = serverCarData[key];
+        
+        if (!localValue || (serverValue && serverValue.lastModified > (localValue.lastModified || 0))) {
+            merged[key] = serverValue;
+        }
+    });
+    
+    return merged;
+}
+
+function mergePrices(localPrices, serverPrices) {
+    // Pentru prețuri, folosește valorile mai recente sau default-urile
+    return {
+        water: serverPrices.water || localPrices.water || 15.50,
+        gas: serverPrices.gas || localPrices.gas || 3.20,
+        electric: serverPrices.electric || localPrices.electric || 0.65,
+        lastModified: Math.max(
+            serverPrices.lastModified || 0,
+            localPrices.lastModified || 0
+        )
+    };
+}
+
+function markAllReadingsAsSynced() {
+    if (!familyData.readings) return;
+    
+    Object.values(familyData.readings).forEach(typeReadings => {
+        typeReadings.forEach(reading => {
+            if (reading.syncStatus === 'syncing' || reading.syncStatus === 'local') {
+                reading.syncStatus = 'synced';
+            }
+        });
+    });
+}
 
 // === PWA INSTALL FUNCTIONALITY ===
 function setupPWAInstall() {
@@ -200,7 +542,7 @@ function saveData() {
     }
 }
 
-// === READINGS MANAGEMENT ===
+// === READINGS MANAGEMENT ÎMBUNĂTĂȚIT ===
 function addReading(type) {
     currentFormType = type;
     const titles = {
@@ -223,6 +565,10 @@ function addReading(type) {
 }
 
 function saveReading() {
+    return saveReadingAdvanced();
+}
+
+function saveReadingAdvanced() {
     const value = parseFloat(document.getElementById('formValue').value);
     const date = document.getElementById('formDate').value;
     
@@ -231,23 +577,26 @@ function saveReading() {
         return;
     }
     
-    if (!familyData.readings) {
-        familyData.readings = {};
+    // Validare valoare
+    const lastReading = getLastReadingValue(currentFormType);
+    if (lastReading && value < lastReading) {
+        if (!confirm(`⚠️ Valoarea ${value} este mai mică decât ultima citire (${lastReading}). Continuați?`)) {
+            return;
+        }
     }
     
-    if (!familyData.readings[currentFormType]) {
-        familyData.readings[currentFormType] = [];
+    // Creează citirea cu metadata completă
+    const reading = createReading(currentFormType, value, date);
+    
+    // Adaugă în storage local
+    addReadingToStorage(reading);
+    
+    // Sync imediat dacă e activat
+    if (syncConfig.enabled && isOnline) {
+        syncReadingToFamily(reading);
     }
     
-    const reading = {
-        value: value,
-        date: date,
-        timestamp: Date.now()
-    };
-    
-    familyData.readings[currentFormType].push(reading);
-    familyData.readings[currentFormType].sort((a, b) => new Date(b.date) - new Date(a.date));
-    
+    // Update UI
     saveData();
     updateUI();
     closeForm();
@@ -255,18 +604,90 @@ function saveReading() {
     showAlert(`✅ Citire ${currentFormType} salvată: ${value}`, 'success');
 }
 
+function addReadingToStorage(reading) {
+    if (!familyData.readings) {
+        familyData.readings = {};
+    }
+    
+    if (!familyData.readings[reading.type]) {
+        familyData.readings[reading.type] = [];
+    }
+    
+    // Adaugă și sortează după dată
+    familyData.readings[reading.type].push(reading);
+    familyData.readings[reading.type].sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+function getLastReadingValue(type) {
+    if (!familyData.readings || !familyData.readings[type] || familyData.readings[type].length === 0) {
+        return null;
+    }
+    return familyData.readings[type][0].value;
+}
+
 function deleteReading(type) {
+    return deleteReadingAdvanced(type);
+}
+
+function deleteReadingAdvanced(type, readingId = null) {
     if (!familyData.readings || !familyData.readings[type] || familyData.readings[type].length === 0) {
         showAlert('❌ Nu există citiri de șters', 'warning');
         return;
     }
     
-    if (confirm('Ștergeți ultima citire?')) {
-        familyData.readings[type].shift();
+    let readingToDelete;
+    let readingIndex;
+    
+    if (readingId) {
+        // Șterge citirea specifică
+        readingIndex = familyData.readings[type].findIndex(r => r.id === readingId);
+        if (readingIndex === -1) {
+            showAlert('❌ Citirea nu a fost găsită', 'warning');
+            return;
+        }
+        readingToDelete = familyData.readings[type][readingIndex];
+    } else {
+        // Șterge ultima citire
+        readingToDelete = familyData.readings[type][0];
+        readingIndex = 0;
+    }
+    
+    const confirmMessage = `Ștergeți citirea ${readingToDelete.value} din ${formatDate(readingToDelete.date)}?`;
+    if (confirm(confirmMessage)) {
+        // Marchează ca ștearsă în loc să o ștergi complet (pentru sync)
+        readingToDelete.deleted = true;
+        readingToDelete.deletedAt = Date.now();
+        readingToDelete.deletedBy = syncConfig.deviceId;
+        readingToDelete.syncStatus = 'local';
+        
+        // Sync ștergerea
+        if (syncConfig.enabled && isOnline) {
+            syncDeletedReadingToFamily(readingToDelete);
+        }
+        
+        // Remove din UI dar păstrează în backend pentru sync
+        familyData.readings[type].splice(readingIndex, 1);
+        
         saveData();
         updateUI();
         showAlert(`✅ Citire ${type} ștearsă`, 'success');
     }
+}
+
+// === FUNCȚII SYNC SPECIFICE ===
+async function syncReadingToFamily(reading) {
+    if (!syncConfig.enabled || !isOnline) return;
+    
+    reading.syncStatus = 'syncing';
+    await uploadLocalChangesToServer();
+    reading.syncStatus = 'synced';
+}
+
+async function syncDeletedReadingToFamily(deletedReading) {
+    if (!syncConfig.enabled || !isOnline) return;
+    
+    // Adaugă ștergerea în lista de modificări pentru sync
+    await uploadLocalChangesToServer();
 }
 
 // === UI UPDATES ===
@@ -742,23 +1163,76 @@ function generateFamilyCode() {
 }
 
 function saveFamily() {
+    return setupFamilyAdvanced();
+}
+
+async function setupFamilyAdvanced() {
     const code = document.getElementById('familyCodeInput').value.trim();
     if (!code) {
         showAlert('❌ Introduceți un cod pentru familie', 'danger');
         return;
     }
     
+    // Validare cod familie
+    if (code.length < 5) {
+        showAlert('❌ Codul familiei trebuie să aibă cel puțin 5 caractere', 'danger');
+        return;
+    }
+    
+    syncConfig.familyCode = code;
+    syncConfig.enabled = true;
     familyData.familyCode = code;
+    
     localStorage.setItem('familyCode', code);
     
     document.getElementById('familyCode').textContent = code;
     
     if (isOnline) {
-        startFamilySync();
+        showAlert('🔄 Se conectează la familia...', 'info');
+        
+        try {
+            await performInitialSync();
+            startContinuousSync();
+            showAlert(`✅ Conectat la familia "${code}" cu succes!`, 'success');
+        } catch (error) {
+            showAlert('❌ Eroare la conectarea la familie', 'danger');
+            console.error('Eroare setup familie:', error);
+        }
+    } else {
+        showAlert(`✅ Familia "${code}" configurată (se va sincroniza când sunteți online)`, 'success');
     }
     
     updateNetworkStatus();
-    showAlert(`✅ Familia "${code}" configurată cu succes!`, 'success');
+    updateSyncStatusDisplay();
+}
+
+async function forceFullSync() {
+    if (!syncConfig.enabled) {
+        showAlert('❌ Sincronizarea nu este activată', 'danger');
+        return;
+    }
+    
+    if (!isOnline) {
+        showAlert('❌ Nu sunteți conectat la internet', 'danger');
+        return;
+    }
+    
+    showAlert('🔄 Sincronizare completă în curs...', 'info');
+    
+    try {
+        // Reset sync timestamp pentru a forța sync complet
+        syncConfig.lastSyncTimestamp = 0;
+        
+        await performInitialSync();
+        
+        showAlert('✅ Sincronizare completă finalizată!', 'success');
+        updateUI();
+        updateReminders();
+        
+    } catch (error) {
+        showAlert('❌ Eroare la sincronizarea completă', 'danger');
+        console.error('Eroare sync complet:', error);
+    }
 }
 
 function testSync() {
@@ -802,6 +1276,41 @@ function syncNow() {
         updateNetworkStatus();
         showAlert('✅ Sincronizare completă!', 'success');
     }, 1500);
+}
+
+// === UI PENTRU SYNC STATUS ===
+function showSyncStatus(message) {
+    const syncStatus = document.getElementById('syncStatus');
+    if (syncStatus) {
+        syncStatus.innerHTML = message;
+        syncStatus.className = 'sync-status syncing';
+    }
+}
+
+function updateSyncStatusDisplay() {
+    const syncDetails = document.getElementById('syncDetails');
+    const connectedUsers = document.getElementById('connectedUsers');
+    
+    if (syncConfig.enabled && syncConfig.familyCode) {
+        const lastSync = new Date(syncConfig.lastSyncTimestamp);
+        
+        if (syncDetails) {
+            syncDetails.textContent = `Conectat la familia "${syncConfig.familyCode}" - Ultima sincronizare: ${formatTime(lastSync)}`;
+        }
+        
+        // Simulare utilizatori conectați (în realitate din backend)
+        if (connectedUsers) {
+            const devices = JSON.parse(localStorage.getItem('familyDevices') || '{}');
+            connectedUsers.textContent = Object.keys(devices).length.toString();
+        }
+    } else {
+        if (syncDetails) {
+            syncDetails.textContent = 'Offline - configurați codul familiei pentru sincronizare';
+        }
+        if (connectedUsers) {
+            connectedUsers.textContent = '1';
+        }
+    }
 }
 
 // === REPORTS ===
@@ -1250,4 +1759,11 @@ function formatDate(dateString) {
     } catch {
         return dateString;
     }
+}
+
+function formatTime(date) {
+    return date.toLocaleTimeString('ro-RO', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
 }
