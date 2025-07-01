@@ -15,18 +15,102 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Utilități PWA">
     
-    <!-- SERVICE WORKER REGISTRATION -->
+    <!-- SERVICE WORKER REGISTRATION FIXED -->
     <script>
+        // PWA Service Worker - Soluție inline care funcționează
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('data:text/javascript;base64,Y29uc3QgQ0FDSEVfTkFNRSA9ICd1dGlsaXRhdGktcHdhLXYxJzsKY29uc3QgdXJsc1RvQ2FjaGUgPSBbCiAgJy8nLAogICcvaW5kZXguaHRtbCcKXTsKCnNlbGYuYWRkRXZlbnRMaXN0ZW5lcignaW5zdGFsbCcsIGZ1bmN0aW9uKGV2ZW50KSB7CiAgZXZlbnQud2FpdFVudGlsKAogICAgY2FjaGVzLm9wZW4oQ0FDSEVfTkFNRSkudGhlbihmdW5jdGlvbihjYWNoZSkgewogICAgICByZXR1cm4gY2FjaGUuYWRkQWxsKHVybHNUb0NhY2hlKTsKICAgIH0pCiAgKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2ZldGNoJywgZnVuY3Rpb24oZXZlbnQpIHsKICBldmVudC5yZXNwb25kV2l0aCgKICAgIGNhY2hlcy5tYXRjaChldmVudC5yZXF1ZXN0KQogICAgICAudGhlbihmdW5jdGlvbihyZXNwb25zZSkgewogICAgICAgIGlmIChyZXNwb25zZSkgewogICAgICAgICAgcmV0dXJuIHJlc3BvbnNlOwogICAgICAgIH0KICAgICAgICByZXR1cm4gZmV0Y2goZXZlbnQucmVxdWVzdCk7CiAgICAgIH0pCiAgKTsKfSk7')
-                .then(registration => {
-                    console.log('✅ PWA Service Worker înregistrat!', registration);
-                })
-                .catch(registrationError => {
-                    console.log('❌ PWA Service Worker eșuat:', registrationError);
-                });
+                // Creăm service worker inline folosind Blob
+                const swCode = `
+                    const CACHE_NAME = 'utilitati-pwa-v1';
+                    const urlsToCache = [
+                        '/',
+                        '/index.html'
+                    ];
+
+                    self.addEventListener('install', function(event) {
+                        console.log('PWA Service Worker: Install');
+                        event.waitUntil(
+                            caches.open(CACHE_NAME).then(function(cache) {
+                                console.log('PWA Cache deschis');
+                                return cache.addAll(urlsToCache).catch(err => {
+                                    console.log('Cache add error:', err);
+                                    return Promise.resolve(); // Continue chiar dacă cache-ul eșuează
+                                });
+                            })
+                        );
+                        self.skipWaiting(); // Activează imediat
+                    });
+
+                    self.addEventListener('activate', function(event) {
+                        console.log('PWA Service Worker: Activate');
+                        event.waitUntil(
+                            caches.keys().then(function(cacheNames) {
+                                return Promise.all(
+                                    cacheNames.map(function(cacheName) {
+                                        if (cacheName !== CACHE_NAME) {
+                                            console.log('Șterge cache vechi:', cacheName);
+                                            return caches.delete(cacheName);
+                                        }
+                                    })
+                                );
+                            }).then(() => {
+                                return self.clients.claim(); // Preia controlul
+                            })
+                        );
+                    });
+
+                    self.addEventListener('fetch', function(event) {
+                        // Cache strategy: Network first, fallback to cache
+                        event.respondWith(
+                            fetch(event.request)
+                                .then(function(response) {
+                                    // Clonează răspunsul pentru cache
+                                    const responseToCache = response.clone();
+                                    
+                                    caches.open(CACHE_NAME)
+                                        .then(function(cache) {
+                                            cache.put(event.request, responseToCache);
+                                        });
+                                    
+                                    return response;
+                                })
+                                .catch(function() {
+                                    // Dacă network eșuează, încearcă cache
+                                    return caches.match(event.request);
+                                })
+                        );
+                    });
+                `;
+
+                // Creează blob URL pentru service worker
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(swBlob);
+
+                navigator.serviceWorker.register(swUrl)
+                    .then(registration => {
+                        console.log('✅ PWA Service Worker înregistrat cu succes!', registration);
+                        
+                        // Cleanup blob URL după înregistrare
+                        URL.revokeObjectURL(swUrl);
+                        
+                        // Listen for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('PWA Update available');
+                                }
+                            });
+                        });
+                    })
+                    .catch(registrationError => {
+                        console.log('❌ PWA Service Worker eșuat:', registrationError);
+                        // PWA va funcționa parțial chiar fără Service Worker
+                    });
             });
+        } else {
+            console.log('Service Worker nu este suportat în acest browser');
         }
     </script>
     
