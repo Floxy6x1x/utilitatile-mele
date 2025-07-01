@@ -10,6 +10,24 @@
     <meta name="theme-color" content="#4CAF50">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Utilități">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <!-- Favicon și iconițe -->
+    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%234CAF50'/><text x='16' y='20' font-size='18' text-anchor='middle' fill='white'>🏠</text></svg>">
+    <link rel="icon" type="image/png" sizes="16x16" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%234CAF50'/><text x='8' y='11' font-size='10' text-anchor='middle' fill='white'>🏠</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%234CAF50' rx='20'/><text x='90' y='110' font-size='80' text-anchor='middle' fill='white'>🏠</text></svg>">
+    
+    <!-- Meta tags pentru SEO și Social Media -->
+    <meta name="description" content="Aplicație PWA pentru gestionarea utilitaților și mașinii familiei cu sincronizare bidirectională">
+    <meta name="keywords" content="utilități, familie, contoare, mașină, ITP, RCA, PWA">
+    <meta name="author" content="Utilitățile Familiei">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph pentru social media -->
+    <meta property="og:title" content="🏠 Utilitățile Familiei">
+    <meta property="og:description" content="Aplicație PWA pentru gestionarea utilitaților și mașinii familiei">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%234CAF50'/><text x='256' y='300' font-size='200' text-anchor='middle' fill='white'>🏠</text></svg>">
     
     <!-- Styles -->
     <style>
@@ -40,6 +58,7 @@
             color: white;
             padding: 20px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
@@ -50,6 +69,32 @@
         .header .subtitle {
             opacity: 0.9;
             font-size: 0.9rem;
+        }
+
+        /* PWA Install Button */
+        .install-prompt {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .install-prompt:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .install-prompt.show {
+            display: flex;
         }
 
         /* Sync Status Bar */
@@ -487,6 +532,32 @@
             transition: width 0.3s ease;
         }
 
+        /* PWA Status Indicator */
+        .pwa-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .pwa-status.show {
+            display: flex;
+        }
+
+        .pwa-status.offline {
+            background: rgba(244, 67, 54, 0.9);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .utility-grid {
@@ -509,6 +580,12 @@
                 font-size: 0.85rem;
                 padding: 12px 8px;
             }
+
+            .install-prompt {
+                position: static;
+                margin: 10px auto;
+                width: fit-content;
+            }
         }
 
         @media (max-width: 480px) {
@@ -530,6 +607,17 @@
                 gap: 10px;
             }
         }
+
+        /* PWA standalone mode styles */
+        @media (display-mode: standalone) {
+            .header {
+                padding-top: max(20px, env(safe-area-inset-top));
+            }
+            
+            .install-prompt {
+                display: none !important;
+            }
+        }
     </style>
     
     <!-- External Scripts -->
@@ -541,6 +629,11 @@
         <div class="header">
             <h1>🏠 Utilitățile Familiei</h1>
             <div class="subtitle">Simplu • Intuitiv • Sincronizat</div>
+            
+            <!-- PWA Install Button -->
+            <button class="install-prompt" id="installPrompt">
+                📱 Instalează App
+            </button>
         </div>
 
         <!-- Sync Status Bar -->
@@ -826,6 +919,11 @@
         </div>
     </div>
 
+    <!-- PWA Status Indicator -->
+    <div class="pwa-status" id="pwaStatus">
+        📱 Offline Mode
+    </div>
+
     <!-- Form Overlay pentru citiri -->
     <div class="form-overlay" id="formOverlay">
         <div class="form-popup">
@@ -880,7 +978,8 @@
         };
         let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
         let previousReminderCount = 0;
-        let audioContext = null; // Pentru a rezolva problema AudioContext
+        let audioContext = null;
+        let deferredPrompt;
 
         // Inițializare aplicație
         document.addEventListener('DOMContentLoaded', function() {
@@ -889,6 +988,7 @@
             updateAllDisplays();
             setupSyncChecker();
             initializeSoundToggle();
+            setupPWAFeatures();
             
             // Set today as default date
             const today = new Date().toISOString().split('T')[0];
@@ -910,7 +1010,64 @@
             }
         }
 
-        // === ÎMBUNĂTĂȚIRE: AUDIO CONTEXT CORECT ===
+        // === PWA FEATURES ===
+        function setupPWAFeatures() {
+            // PWA Install Prompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                showInstallPrompt();
+            });
+
+            // PWA Install Success
+            window.addEventListener('appinstalled', () => {
+                hideInstallPrompt();
+                showAlert('📱 Aplicația a fost instalată cu succes!', 'success');
+            });
+
+            // Online/Offline Status
+            window.addEventListener('online', updatePWAStatus);
+            window.addEventListener('offline', updatePWAStatus);
+            updatePWAStatus();
+
+            // Install prompt click
+            document.getElementById('installPrompt').addEventListener('click', installPWA);
+        }
+
+        function showInstallPrompt() {
+            document.getElementById('installPrompt').classList.add('show');
+        }
+
+        function hideInstallPrompt() {
+            document.getElementById('installPrompt').classList.remove('show');
+        }
+
+        async function installPWA() {
+            if (!deferredPrompt) return;
+
+            const result = await deferredPrompt.prompt();
+            console.log('PWA install result:', result);
+            
+            deferredPrompt = null;
+            hideInstallPrompt();
+        }
+
+        function updatePWAStatus() {
+            const status = document.getElementById('pwaStatus');
+            
+            if (navigator.onLine) {
+                status.textContent = '🌐 Online';
+                status.classList.remove('offline');
+                status.classList.add('show');
+                setTimeout(() => status.classList.remove('show'), 3000);
+            } else {
+                status.textContent = '📱 Offline Mode';
+                status.classList.add('offline');
+                status.classList.add('show');
+            }
+        }
+
+        // === AUDIO CONTEXT CORECT ===
         function initializeAudioContext() {
             if (!audioContext) {
                 try {
@@ -1179,7 +1336,7 @@
             return familyData.readings[type][0].value;
         }
 
-        // === CAR MANAGEMENT - TOATE FUNCȚIILE LIPSĂ ===
+        // === CAR MANAGEMENT ===
         function updateCarNumber() {
             const current = familyData.carData.carNumber || '';
             const number = prompt('Introduceți numărul de înmatriculare:', current);
@@ -1234,7 +1391,7 @@
             const current = familyData.carData.carKm || '';
             const km = prompt('Introduceți kilometrajul actual:', current);
             if (km !== null && km.trim() !== '') {
-                const kmNum = parseInt(km.replace(/[^0-9]/g, '')); // Elimină caracterele non-numerice
+                const kmNum = parseInt(km.replace(/[^0-9]/g, ''));
                 
                 if (isNaN(kmNum) || kmNum < 0) {
                     showAlert('❌ Kilometrajul introdus nu este valid', 'danger');
@@ -2024,7 +2181,7 @@
             }
         });
 
-        console.log('🏠 Aplicația Utilitățile Familiei încărcată cu succes - versiunea corectată!');
+        console.log('🏠 Aplicația Utilitățile Familiei PWA v2.0 încărcată cu succes!');
     </script>
 
     <!-- PWA Service Worker -->
@@ -2035,6 +2192,7 @@
                     .then(registration => {
                         console.log('✅ SW registered successfully');
                         showAlert('📱 Aplicația poate funcționa offline!', 'info');
+                        updatePWAStatus();
                     })
                     .catch(error => {
                         console.log('❌ SW registration failed:', error);
