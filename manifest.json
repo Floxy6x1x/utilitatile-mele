@@ -1,9 +1,42 @@
 {
-  "name": "Utilitățile Mele v4.0",
+  "name": "Utilitățile Mele PWA",
   "short_name": "Utilități",
-  "description": "Aplicație pentru managementul utilităților",
-  "start_url": "/",
+  "description": "Aplicație PWA pentru managementul utilităților casnice cu reminder-uri și sincronizare",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4CAF50"
+  "background_color": "#667eea",
+  "theme_color": "#4CAF50",
+  "orientation": "portrait-primary",
+  "scope": "./",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSI0OCIgZmlsbD0iIzY2N2VlYSIvPjxwYXRoIGQ9Ik05NiA0OEw3MiA5NkgxMjBMOTYgMTQ0TDEyMCA5Nkg3Mkw5NiA0OFoiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTQ4IDk2SDcyVjEyMEg0OFY5NloiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTEyMCA5NkgxNDRWMTIwSDEyMFY5NloiIGZpbGw9IndoaXRlIi8+PC9zdmc+",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMjgiIGZpbGw9IiM2NjdlZWEiLz48cGF0aCBkPSJNMjU2IDEyOEwxOTIgMjU2SDMyMEwyNTYgMzg0TDMyMCAyNTZIMTkyTDI1NiAxMjhaIiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGQ9Ik0xMjggMjU2SDE5MlYzMjBIMTI4VjI1NloiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTMyMCAyNTZIMzg0VjMyMEgzMjBWMjU2WiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Citire rapidă",
+      "short_name": "Citire",
+      "description": "Citește rapid indexurile",
+      "url": "./?tab=meters",
+      "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIyNCIgZmlsbD0iIzRDQUY1MCIvPjx0ZXh0IHg9IjQ4IiB5PSI1NiIgZm9udC1mYW1pbHk9InN5c3RlbS11aSIgZm9udC1zaXplPSI0OCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjPC08+8L3RleHQ+PC9zdmc+", "sizes": "96x96" }]
+    },
+    {
+      "name": "Mașina",
+      "short_name": "Auto",
+      "description": "Status documente auto",
+      "url": "./?tab=car",
+      "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIyNCIgZmlsbD0iIzIxOTZGMyIvPjx0ZXh0IHg9IjQ4IiB5PSI1NiIgZm9udC1mYW1pbHk9InN5c3RlbS11aSIgZm9udC1zaXplPSI0OCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfmpc8L3RleHQ+PC9zdmc+", "sizes": "96x96" }]
+    }
+  ],
+  "categories": ["utilities", "productivity", "lifestyle"],
+  "lang": "ro",
+  "dir": "ltr"
 }
