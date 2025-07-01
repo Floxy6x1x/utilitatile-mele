@@ -1,4 +1,54 @@
-<!DOCTYPE html>
+<div class="card">
+                <h3>📊 Export pentru Asociația de Proprietari</h3>
+                <div style="background: rgba(76, 175, 80, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="color: #2E7D32; margin-bottom: 15px;">📋 Fișier Excel profesional pentru asociația de proprietari</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <strong>📝 Include:</strong><br>
+                            • Indexuri actuali la toate contoarele<br>
+                            • Consumurile calculate automat<br>
+                            • Costurile estimate
+                        </div>
+
+            <div class="card">
+                <h3>📊 Export pentru Asociația de Proprietari</h3>
+                <div style="background: rgba(76, 175, 80, 0.1); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="color: #2E7D32; margin-bottom: 15px;">📋 Fișier Excel profesional pentru asociația de proprietari</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <strong>📝 Include:</strong><br>
+                            • Indexuri actuali la toate contoarele<br>
+                            • Consumurile calculate automat<br>
+                            • Costurile estimate
+                        </div>
+                        <div>
+                            <strong>👤 Date personale:</strong><br>
+                            • Nume: Iordache Florin<br>
+                            • Adresa: Str. Dunarii, Bl K1, Sc. A, Ap. 9<br>
+                            • Data raportului
+                        </div>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="btn btn-success" onclick="exportExcelEnhanced()" style="font-size: 1.1rem; padding: 15px 30px;">
+                            📋 Generează Excel pentru Asociație
+                        </button>
+                    </div>
+                </div>
+            </div>
+                        <div>
+                            <strong>👤 Date personale:</strong><br>
+                            • Nume: Iordache Florin<br>
+                            • Adresa: Str. Dunarii, Bl K1, Sc. A, Ap. 9<br>
+                            • Data raportului
+                        </div>
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="btn btn-success" onclick="exportExcelEnhanced()" style="font-size: 1.1rem; padding: 15px 30px;">
+                            📋 Generează Excel pentru Asociație
+                        </button>
+                    </div>
+                </div>
+            </div><!DOCTYPE html>
 <html lang="ro">
 <head>
     <meta charset="UTF-8">
@@ -657,7 +707,7 @@
             <div class="quick-actions">
                 <button class="btn btn-success" onclick="markAllRead()">✅ Marchează toate ca citite</button>
                 <button class="btn btn-primary" onclick="showQuickIndex()">⚡ Index rapid</button>
-                <button class="btn btn-warning" onclick="generateReport()">📋 Raport rapid</button>
+                <button class="btn btn-warning" onclick="generateQuickReport()">📋 Raport rapid</button>
                 <button class="btn btn-info" onclick="syncNow()">🔄 Sincronizează acum</button>
             </div>
         </div>
@@ -937,10 +987,17 @@
             </div>
 
             <div class="quick-actions">
-                <button class="btn btn-success" onclick="exportExcelEnhanced()">📋 Export Excel cu Auto</button>
+                <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 12px; margin-bottom: 15px; width: 100%;">
+                    <h4 style="color: #2E7D32; margin-bottom: 10px; text-align: center;">📋 Export pentru Asociația de Proprietari</h4>
+                    <p style="text-align: center; margin-bottom: 15px; color: #666;">
+                        Fișier Excel cu indexurile pentru <strong>Iordache Florin - Str. Dunarii, Bl K1, Sc. A, Ap. 9</strong>
+                    </p>
+                </div>
+                <button class="btn btn-success" onclick="exportExcelEnhanced()">📋 Export pentru Asociație</button>
                 <button class="btn btn-danger" onclick="exportPDF()">📄 Export PDF</button>
                 <button class="btn btn-info" onclick="shareReport()">📤 Partajează JSON</button>
                 <button class="btn btn-warning" onclick="generateDetailedReport()">📊 Raport detaliat</button>
+                <button class="btn" onclick="debugReport()" style="background: #9C27B0;">🐛 Debug Raport</button>
             </div>
         </div>
 
@@ -1033,12 +1090,18 @@
 
         // === INIȚIALIZARE APLICAȚIE ===
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Inițializare aplicație...');
             loadAllData();
             setupNetworkStatus();
             initializeApp();
             updateUI();
             updateReminders();
-            generateReport(); // Auto-generează raportul la început
+            
+            // Generează raportul inițial după o scurtă întârziere
+            setTimeout(() => {
+                console.log('📊 Generare raport inițial...');
+                generateReport();
+            }, 1000);
         });
 
         function initializeApp() {
@@ -1113,7 +1176,11 @@
             currentTab = tabName;
             
             if (tabName === 'reports') {
-                setTimeout(() => generateReport(), 100);
+                console.log('📊 Intrând în tab-ul Rapoarte...');
+                setTimeout(() => {
+                    generateReport();
+                    console.log('🔄 Raport auto-generat pentru tab Rapoarte');
+                }, 200);
             }
         }
 
@@ -1725,13 +1792,21 @@
             return latestDate.getMonth() === today.getMonth() && latestDate.getFullYear() === today.getFullYear();
         }
 
-        // === ENHANCED REPORTS ===
+        // === ENHANCED REPORTS - REPARAT ===
         function generateReport() {
-            updateCarInfoInReport();
-            generateConsumptionReport();
+            console.log('🔄 Generând raportul...');
+            showAlert('📊 Se generează raportul...', 'info');
+            
+            setTimeout(() => {
+                updateCarInfoInReport();
+                generateConsumptionReport();
+                showAlert('✅ Raport generat cu succes!', 'success');
+                console.log('✅ Raport complet generat');
+            }, 500);
         }
 
         function updateCarInfoInReport() {
+            console.log('🚗 Actualizând informații auto în raport...');
             const carData = familyData.carData || {};
             
             // Update car info in report
@@ -1745,12 +1820,17 @@
             updateReportElement('reportInsurance', getDocumentStatusText('insurance'));
             updateReportElement('reportRovignette', getDocumentStatusText('rovignette'));
             updateReportElement('reportCasco', getDocumentStatusText('casco'));
+            
+            console.log('✅ Informații auto actualizate în raport');
         }
 
         function updateReportElement(elementId, value, defaultValue = '-') {
             const element = document.getElementById(elementId);
             if (element) {
                 element.textContent = value || defaultValue;
+                console.log(`📝 Actualizat ${elementId}: ${value || defaultValue}`);
+            } else {
+                console.warn(`⚠️ Element ${elementId} nu a fost găsit`);
             }
         }
 
@@ -1772,29 +1852,52 @@
         }
 
         function generateConsumptionReport() {
+            console.log('📊 Generând raportul de consum...');
             const tableBody = document.getElementById('consumptionTableBody');
-            if (!tableBody) return;
+            if (!tableBody) {
+                console.error('❌ Element consumptionTableBody nu a fost găsit');
+                return;
+            }
             
             const months = getLastSixMonths();
             const rows = [];
             
-            if (months.length === 0 || !familyData.readings || Object.keys(familyData.readings).length === 0) {
+            console.log(`📅 Luni pentru raport: ${months.length}`);
+            console.log(`📊 Date disponibile:`, familyData.readings);
+            
+            // Verifică dacă există citiri
+            const hasReadings = familyData.readings && Object.keys(familyData.readings).length > 0;
+            const hasAnyData = hasReadings && Object.values(familyData.readings).some(readings => readings && readings.length > 0);
+            
+            if (!hasAnyData) {
                 rows.push(`
                     <tr>
-                        <td colspan="6" style="text-align: center; padding: 20px; color: #666;">
-                            📝 Nu există suficiente date pentru a genera raportul.<br>
-                            Adăugați câteva citiri pentru a vedea consumurile.
+                        <td colspan="6" style="text-align: center; padding: 30px; color: #666; background: rgba(255, 193, 7, 0.1);">
+                            <div style="font-size: 1.2rem; margin-bottom: 10px;">📝 Raportul va fi generat după ce adăugați citiri</div>
+                            <div>Adăugați câteva citiri în secțiunea "Contoare" pentru a vedea consumurile aici.</div>
+                            <div style="margin-top: 15px;">
+                                <button class="btn btn-primary" onclick="showTab('meters')" style="margin-right: 10px;">📊 Mergi la Contoare</button>
+                                <button class="btn btn-success" onclick="addSampleData()">📝 Adaugă date exemplu</button>
+                            </div>
                         </td>
                     </tr>
                 `);
             } else {
+                // Generează raportul pentru fiecare lună
                 months.forEach(month => {
                     const consumption = getConsumptionForMonth(month.year, month.month);
                     const cost = calculateMonthlyCost(consumption);
                     
+                    // Verifică dacă luna are date
+                    const hasDataForMonth = consumption.waterBath > 0 || consumption.waterKitchen > 0 || 
+                                          consumption.gas > 0 || consumption.electric > 0;
+                    
+                    const rowClass = hasDataForMonth ? '' : 'style="opacity: 0.6;"';
+                    const dataIndicator = hasDataForMonth ? '' : '<small>(fără date)</small>';
+                    
                     rows.push(`
-                        <tr>
-                            <td><strong>${month.display}</strong></td>
+                        <tr ${rowClass}>
+                            <td><strong>${month.display}</strong> ${dataIndicator}</td>
                             <td>${consumption.waterBath.toFixed(2)}</td>
                             <td>${consumption.waterKitchen.toFixed(2)}</td>
                             <td>${consumption.gas.toFixed(2)}</td>
@@ -1803,9 +1906,68 @@
                         </tr>
                     `);
                 });
+                
+                // Adaugă un rând de total
+                const totalConsumption = months.reduce((total, month) => {
+                    const consumption = getConsumptionForMonth(month.year, month.month);
+                    total.waterBath += consumption.waterBath;
+                    total.waterKitchen += consumption.waterKitchen;
+                    total.gas += consumption.gas;
+                    total.electric += consumption.electric;
+                    total.cost += calculateMonthlyCost(consumption);
+                    return total;
+                }, { waterBath: 0, waterKitchen: 0, gas: 0, electric: 0, cost: 0 });
+                
+                rows.push(`
+                    <tr style="background: rgba(76, 175, 80, 0.1); font-weight: bold; border-top: 2px solid #4CAF50;">
+                        <td><strong>🔄 TOTAL ultimele 6 luni</strong></td>
+                        <td><strong>${totalConsumption.waterBath.toFixed(2)}</strong></td>
+                        <td><strong>${totalConsumption.waterKitchen.toFixed(2)}</strong></td>
+                        <td><strong>${totalConsumption.gas.toFixed(2)}</strong></td>
+                        <td><strong>${totalConsumption.electric.toFixed(2)}</strong></td>
+                        <td><strong>${totalConsumption.cost.toFixed(2)} RON</strong></td>
+                    </tr>
+                `);
             }
             
             tableBody.innerHTML = rows.join('');
+            console.log('✅ Tabel de consum generat cu succes');
+        }
+
+        // Funcție pentru a adăuga date exemplu (pentru testare)
+        function addSampleData() {
+            if (confirm('🧪 Adăugați date exemplu pentru testarea raportului? (Acestea pot fi șterse mai târziu)')) {
+                const today = new Date();
+                const types = ['waterBath', 'waterKitchen', 'gas', 'electric'];
+                const baseValues = { waterBath: 1000, waterKitchen: 500, gas: 2000, electric: 15000 };
+                
+                if (!familyData.readings) familyData.readings = {};
+                
+                types.forEach(type => {
+                    if (!familyData.readings[type]) familyData.readings[type] = [];
+                    
+                    // Adaugă citiri pentru ultimele 3 luni
+                    for (let i = 0; i < 3; i++) {
+                        const date = new Date(today.getFullYear(), today.getMonth() - i, 15);
+                        const value = baseValues[type] + (i * 50) + Math.random() * 20;
+                        
+                        familyData.readings[type].push({
+                            value: Math.round(value * 100) / 100,
+                            date: date.toISOString().split('T')[0],
+                            timestamp: date.getTime(),
+                            id: 'sample_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+                        });
+                    }
+                    
+                    // Sortează după dată
+                    familyData.readings[type].sort((a, b) => new Date(b.date) - new Date(a.date));
+                });
+                
+                saveData();
+                updateUI();
+                generateReport();
+                showAlert('✅ Date exemplu adăugate! Raportul a fost generat.', 'success');
+            }
         }
 
         function getLastSixMonths() {
@@ -1871,81 +2033,204 @@
             }, 1000);
         }
 
-        // === ENHANCED EXPORT FUNCTIONS ===
+        function debugReport() {
+            console.log('🐛 DEBUG RAPORT - Starea aplicației:');
+            console.log('📊 familyData:', familyData);
+            console.log('📊 familyData.readings:', familyData.readings);
+            console.log('🚗 familyData.carData:', familyData.carData);
+            console.log('💰 familyData.prices:', familyData.prices);
+            
+            const tableBody = document.getElementById('consumptionTableBody');
+            console.log('📊 Element tabel găsit:', !!tableBody);
+            
+            const carElements = [
+                'reportCarNumber', 'reportCarBrand', 'reportCarYear', 'reportCarKm',
+                'reportITP', 'reportInsurance', 'reportRovignette', 'reportCasco'
+            ];
+            
+            carElements.forEach(id => {
+                const element = document.getElementById(id);
+                console.log(`🚗 Element ${id}:`, !!element, element?.textContent);
+            });
+            
+            showAlert('🐛 Informații debug afișate în consolă (F12)', 'info');
+            generateReport();
+        }
+
+        // === ENHANCED EXPORT FUNCTIONS - PENTRU ASOCIAȚIA DE PROPRIETARI ===
         function exportExcelEnhanced() {
-            showAlert('📋 Se generează fișierul Excel cu informații auto...', 'info');
+            showAlert('📋 Se generează fișierul Excel pentru asociația de proprietari...', 'info');
             
             setTimeout(() => {
                 try {
                     const wb = XLSX.utils.book_new();
+                    const today = new Date();
+                    const currentMonth = today.toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
                     
-                    // Car data sheet
-                    const carData = familyData.carData || {};
-                    const carInfo = [
-                        ['Numărul de înmatriculare', carData.carNumber || 'Nu a fost adăugat'],
-                        ['Marca și modelul', carData.carBrand || 'Nu a fost adăugat'],
-                        ['Anul fabricației', carData.carYear || 'Nu a fost adăugat'],
-                        ['Kilometrajul actual', carData.carKm ? `${carData.carKm.toLocaleString()} km` : 'Nu a fost adăugat'],
-                        ['Ultima schimbare ulei', carData.lastOilChange || 'Nu a fost adăugat'],
-                        ['Expirare ITP', carData.itpExpiry || 'Nu a fost adăugat'],
-                        ['Expirare RCA', carData.insuranceExpiry || 'Nu a fost adăugat'],
-                        ['Expirare Rovinietă', carData.rovignetteExpiry || 'Nu a fost adăugat'],
-                        ['Expirare CASCO', carData.cascoExpiry || 'Nu a fost adăugat']
+                    // === FOAIA 1: INDEXURI LUNARE PENTRU ASOCIAȚIE ===
+                    const indexData = [];
+                    
+                    // Header cu informații personale
+                    indexData.push(['INDEXURI UTILITATI - ' + currentMonth.toUpperCase()]);
+                    indexData.push(['']);
+                    indexData.push(['Proprietar:', 'Iordache Florin']);
+                    indexData.push(['Adresa:', 'Str. Dunarii, Bl K1, Sc. A, Ap. 9']);
+                    indexData.push(['Data raportului:', today.toLocaleDateString('ro-RO')]);
+                    indexData.push(['']);
+                    indexData.push(['TIPUL CONTORULUI', 'INDEX ACTUAL', 'DATA CITIRE', 'INDEX ANTERIOR', 'CONSUM']);
+                    
+                    // Adaugă indexurile curente
+                    const types = [
+                        { key: 'waterBath', name: 'Apometru Baie (mc)' },
+                        { key: 'waterKitchen', name: 'Apometru Bucătărie (mc)' },
+                        { key: 'gas', name: 'Contor Gaz (mc)' },
+                        { key: 'electric', name: 'Contor Electricitate (kWh)' }
                     ];
                     
-                    const carWs = XLSX.utils.aoa_to_sheet([
-                        ['Informație', 'Valoare'],
-                        ...carInfo
-                    ]);
-                    XLSX.utils.book_append_sheet(wb, carWs, 'Informații Auto');
-                    
-                    // Consumption data
-                    const months = getLastSixMonths();
-                    const data = months.map(month => {
-                        const consumption = getConsumptionForMonth(month.year, month.month);
-                        const cost = calculateMonthlyCost(consumption);
-                        
-                        return {
-                            'Luna': month.display,
-                            'Apă Baie (mc)': consumption.waterBath.toFixed(2),
-                            'Apă Bucătărie (mc)': consumption.waterKitchen.toFixed(2), 
-                            'Gaz (mc)': consumption.gas.toFixed(2),
-                            'Electricitate (kWh)': consumption.electric.toFixed(2),
-                            'Cost Total (RON)': cost.toFixed(2)
-                        };
+                    types.forEach(type => {
+                        const readings = familyData.readings?.[type.key] || [];
+                        if (readings.length > 0) {
+                            const current = readings[0];
+                            const previous = readings[1];
+                            const consumption = previous ? (current.value - previous.value).toFixed(2) : '-';
+                            
+                            indexData.push([
+                                type.name,
+                                current.value,
+                                current.date,
+                                previous ? previous.value : '-',
+                                consumption
+                            ]);
+                        } else {
+                            indexData.push([
+                                type.name,
+                                'Nu a fost citit',
+                                '-',
+                                '-',
+                                '-'
+                            ]);
+                        }
                     });
                     
-                    const ws = XLSX.utils.json_to_sheet(data);
-                    XLSX.utils.book_append_sheet(wb, ws, 'Consumuri');
+                    // Adaugă total estimat
+                    const estimatedCost = calculateCurrentMonthCost();
+                    indexData.push(['']);
+                    indexData.push(['COST ESTIMAT TOTAL:', estimatedCost.toFixed(2) + ' RON', '', '', '']);
                     
-                    // Readings sheet
-                    if (familyData.readings) {
-                        const readingsData = [];
-                        Object.entries(familyData.readings).forEach(([type, readings]) => {
-                            readings.forEach(reading => {
-                                readingsData.push({
-                                    'Tip': type,
-                                    'Valoare': reading.value,
-                                    'Data': reading.date,
-                                    'Timestamp': new Date(reading.timestamp).toLocaleString('ro-RO')
-                                });
-                            });
-                        });
-                        
-                        if (readingsData.length > 0) {
-                            const readingsWs = XLSX.utils.json_to_sheet(readingsData);
-                            XLSX.utils.book_append_sheet(wb, readingsWs, 'Toate Citirile');
+                    const ws1 = XLSX.utils.aoa_to_sheet(indexData);
+                    
+                    // Stilizare pentru a arăta profesional
+                    const range = XLSX.utils.decode_range(ws1['!ref']);
+                    for (let R = range.s.r; R <= range.e.r; ++R) {
+                        for (let C = range.s.c; C <= range.e.c; ++C) {
+                            const cell_address = XLSX.utils.encode_cell({c: C, r: R});
+                            if (!ws1[cell_address]) continue;
+                            
+                            // Header principal
+                            if (R === 0) {
+                                ws1[cell_address].s = {
+                                    font: { bold: true, sz: 14 },
+                                    alignment: { horizontal: 'center' }
+                                };
+                            }
+                            // Header tabel
+                            if (R === 6) {
+                                ws1[cell_address].s = {
+                                    font: { bold: true },
+                                    fill: { fgColor: { rgb: "CCCCCC" } }
+                                };
+                            }
                         }
                     }
                     
-                    XLSX.writeFile(wb, `utilitati_cu_auto_${new Date().toISOString().split('T')[0]}.xlsx`);
-                    showAlert('✅ Fișier Excel cu informații auto descărcat cu succes!', 'success');
+                    XLSX.utils.book_append_sheet(wb, ws1, 'Indexuri pentru Asociatie');
+                    
+                    // === FOAIA 2: ISTORIC CITIRI (OPȚIONAL) ===
+                    const historicData = [];
+                    historicData.push(['ISTORIC CITIRI - IORDACHE FLORIN']);
+                    historicData.push(['']);
+                    historicData.push(['TIP CONTOR', 'VALOARE', 'DATA CITIRE']);
+                    
+                    if (familyData.readings) {
+                        Object.entries(familyData.readings).forEach(([type, readings]) => {
+                            const typeName = types.find(t => t.key === type)?.name || type;
+                            readings.slice(0, 10).forEach(reading => { // Ultimele 10 citiri
+                                historicData.push([
+                                    typeName,
+                                    reading.value,
+                                    reading.date
+                                ]);
+                            });
+                        });
+                    }
+                    
+                    const ws2 = XLSX.utils.aoa_to_sheet(historicData);
+                    XLSX.utils.book_append_sheet(wb, ws2, 'Istoric Citiri');
+                    
+                    // === FOAIA 3: CALCULUL COSTURILOR ===
+                    const costData = [];
+                    costData.push(['CALCULUL COSTURILOR - ' + currentMonth.toUpperCase()]);
+                    costData.push(['']);
+                    costData.push(['Proprietar:', 'Iordache Florin']);
+                    costData.push(['Apartament:', 'Str. Dunarii, Bl K1, Sc. A, Ap. 9']);
+                    costData.push(['']);
+                    costData.push(['UTILITATE', 'CONSUM', 'PRET/UNITATE', 'COST (RON)']);
+                    
+                    const currentConsumption = getCurrentMonthConsumption();
+                    const prices = familyData.prices || { water: 15.50, gas: 3.20, electric: 0.65 };
+                    
+                    const waterTotal = currentConsumption.waterBath + currentConsumption.waterKitchen;
+                    const waterCost = waterTotal * prices.water;
+                    const gasCost = currentConsumption.gas * prices.gas;
+                    const electricCost = currentConsumption.electric * prices.electric;
+                    
+                    costData.push(['Apa (total)', waterTotal.toFixed(2) + ' mc', prices.water + ' RON/mc', waterCost.toFixed(2)]);
+                    costData.push(['  - Apometru Baie', currentConsumption.waterBath.toFixed(2) + ' mc', '', '']);
+                    costData.push(['  - Apometru Bucatarie', currentConsumption.waterKitchen.toFixed(2) + ' mc', '', '']);
+                    costData.push(['Gaz', currentConsumption.gas.toFixed(2) + ' mc', prices.gas + ' RON/mc', gasCost.toFixed(2)]);
+                    costData.push(['Electricitate', currentConsumption.electric.toFixed(2) + ' kWh', prices.electric + ' RON/kWh', electricCost.toFixed(2)]);
+                    costData.push(['']);
+                    costData.push(['TOTAL GENERAL:', '', '', (waterCost + gasCost + electricCost).toFixed(2) + ' RON']);
+                    
+                    const ws3 = XLSX.utils.aoa_to_sheet(costData);
+                    XLSX.utils.book_append_sheet(wb, ws3, 'Calculul Costurilor');
+                    
+                    // Salvare fișier
+                    const fileName = `Indexuri_Iordache_Florin_${today.getMonth() + 1}_${today.getFullYear()}.xlsx`;
+                    XLSX.writeFile(wb, fileName);
+                    
+                    showAlert('✅ Fișier Excel pentru asociația de proprietari descărcat cu succes!', 'success');
                     
                 } catch (error) {
                     console.error('Eroare export Excel:', error);
                     showAlert('❌ Eroare la generarea fișierului Excel', 'danger');
                 }
             }, 1000);
+        }
+
+        function calculateCurrentMonthCost() {
+            const consumption = getCurrentMonthConsumption();
+            const prices = familyData.prices || { water: 15.50, gas: 3.20, electric: 0.65 };
+            
+            return (consumption.waterBath + consumption.waterKitchen) * prices.water +
+                   consumption.gas * prices.gas +
+                   consumption.electric * prices.electric;
+        }
+
+        function getCurrentMonthConsumption() {
+            const consumption = { waterBath: 0, waterKitchen: 0, gas: 0, electric: 0 };
+            
+            if (!familyData.readings) return consumption;
+            
+            Object.keys(consumption).forEach(type => {
+                if (familyData.readings[type] && familyData.readings[type].length >= 2) {
+                    const latest = familyData.readings[type][0].value;
+                    const previous = familyData.readings[type][1].value;
+                    consumption[type] = Math.max(0, latest - previous);
+                }
+            });
+            
+            return consumption;
         }
 
         function exportPDF() {
@@ -2093,6 +2378,16 @@
         }
 
         // === QUICK ACTIONS ===
+        function generateQuickReport() {
+            showAlert('⚡ Generare raport rapid...', 'info');
+            
+            setTimeout(() => {
+                showTab('reports');
+                generateReport();
+                showAlert('✅ Raport rapid generat! Consultați tab-ul Rapoarte.', 'success');
+            }, 800);
+        }
+
         function markAllRead() {
             const today = new Date().toISOString().split('T')[0];
             const types = ['waterBath', 'waterKitchen', 'gas', 'electric'];
