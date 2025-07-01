@@ -307,6 +307,10 @@
             margin-bottom: 10px;
         }
 
+        .car-detail div {
+            margin-bottom: 3px;
+        }
+
         /* Buttons */
         .btn {
             padding: 8px 16px;
@@ -396,7 +400,7 @@
             border-radius: 15px;
             padding: 25px;
             width: 90%;
-            max-width: 350px;
+            max-width: 400px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
 
@@ -813,13 +817,13 @@
                 </div>
             </div>
 
-            <!-- Documente Auto -->
+            <!-- Documente Auto cu ambele date -->
             <div class="card">
                 <h3>📄 Documente și Asigurări</h3>
                 <div class="car-grid">
                     <div class="car-item">
                         <h4>🔍 ITP (Inspecție Tehnică Periodică)</h4>
-                        <div class="car-value" id="itpStatus">-</div>
+                        <div class="car-value" id="itpStatus">Nu este setat</div>
                         <div class="car-detail">
                             <div id="itpPurchaseDate">Făcut pe: -</div>
                             <div id="itpExpiryDate">Expiră pe: -</div>
@@ -832,7 +836,7 @@
 
                     <div class="car-item">
                         <h4>🛡️ RCA (Asigurare Obligatorie)</h4>
-                        <div class="car-value" id="rcaStatus">-</div>
+                        <div class="car-value" id="rcaStatus">Nu este setat</div>
                         <div class="car-detail">
                             <div id="rcaPurchaseDate">Cumpărat pe: -</div>
                             <div id="rcaExpiryDate">Expiră pe: -</div>
@@ -845,7 +849,7 @@
 
                     <div class="car-item">
                         <h4>🛣️ Rovinietă</h4>
-                        <div class="car-value" id="rovinietaStatus">-</div>
+                        <div class="car-value" id="rovinietaStatus">Nu este setat</div>
                         <div class="car-detail">
                             <div id="rovinietaPurchaseDate">Cumpărată pe: -</div>
                             <div id="rovinietaExpiryDate">Expiră pe: -</div>
@@ -858,7 +862,7 @@
 
                     <div class="car-item">
                         <h4>🛡️ CASCO (Asigurare Voluntară)</h4>
-                        <div class="car-value" id="cascoStatus">-</div>
+                        <div class="car-value" id="cascoStatus">Nu este setat</div>
                         <div class="car-detail">
                             <div id="cascoPurchaseDate">Cumpărat pe: -</div>
                             <div id="cascoExpiryDate">Expiră pe: -</div>
@@ -1007,6 +1011,7 @@
         // Variabile globale
         let currentTab = 'home';
         let currentFormType = '';
+        let currentDocumentType = '';
         let familyData = {};
         let syncConfig = {
             enabled: false,
@@ -1376,8 +1381,6 @@
         }
 
         // === CAR MANAGEMENT ===
-        let currentDocumentType = '';
-
         function updateCarNumber() {
             const current = familyData.carData.carNumber || '';
             const number = prompt('Introduceți numărul de înmatriculare:', current);
@@ -1566,12 +1569,6 @@
         function closeDocumentForm() {
             document.getElementById('documentFormOverlay').classList.remove('active');
         }
-
-        // Păstrez funcțiile vechi pentru compatibilitate, dar le redirectez către noile funcții
-        function updateITP() { updateDocumentDates('itp'); }
-        function updateRCA() { updateDocumentDates('rca'); }
-        function updateRovignette() { updateDocumentDates('rovinieta'); }
-        function updateCasco() { updateDocumentDates('casco'); }
 
         function isValidDate(dateString) {
             const regex = /^\d{4}-\d{2}-\d{2}$/;
@@ -2093,7 +2090,7 @@
                 const statusEl = document.getElementById(docType + 'Status');
                 
                 if (daysUntilExpiry < 0) {
-                    statusEl.textContent = `EXPIRAT! (${Math.abs(daysUntilExpiry)} zile)`;
+                    statusEl.textContent = `❌ EXPIRAT! (${Math.abs(daysUntilExpiry)} zile)`;
                     statusEl.style.color = '#F44336';
                 } else if (daysUntilExpiry <= 30) {
                     statusEl.textContent = `⚠️ ${daysUntilExpiry} zile`;
@@ -2112,7 +2109,31 @@
             }
         }
 
-        // Actualizez funcția pentru reminders să folosească noile chei
+        function updateStatsDisplay() {
+            // Count readings this month
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            let thisMonthCount = 0;
+            
+            Object.values(familyData.readings).forEach(readings => {
+                if (readings.length > 0) {
+                    const latestDate = new Date(readings[0].date);
+                    if (latestDate.getMonth() === currentMonth && latestDate.getFullYear() === currentYear) {
+                        thisMonthCount++;
+                    }
+                }
+            });
+            
+            document.getElementById('readingsThisMonth').textContent = `${thisMonthCount}/4`;
+            
+            // Estimated cost
+            const estimatedCost = calculateEstimatedCost();
+            document.getElementById('estimatedCost').textContent = estimatedCost > 0 ? `${estimatedCost.toFixed(0)} RON` : '-';
+            
+            // Sync users (simulation)
+            document.getElementById('syncUsers').textContent = syncConfig.enabled ? '2' : '1';
+        }
+
         function updateReminders() {
             const reminders = [];
             const today = new Date();
@@ -2188,31 +2209,6 @@
             } else {
                 remindersCard.style.display = 'none';
             }
-        }
-
-        function updateStatsDisplay() {
-            // Count readings this month
-            const currentMonth = new Date().getMonth();
-            const currentYear = new Date().getFullYear();
-            let thisMonthCount = 0;
-            
-            Object.values(familyData.readings).forEach(readings => {
-                if (readings.length > 0) {
-                    const latestDate = new Date(readings[0].date);
-                    if (latestDate.getMonth() === currentMonth && latestDate.getFullYear() === currentYear) {
-                        thisMonthCount++;
-                    }
-                }
-            });
-            
-            document.getElementById('readingsThisMonth').textContent = `${thisMonthCount}/4`;
-            
-            // Estimated cost
-            const estimatedCost = calculateEstimatedCost();
-            document.getElementById('estimatedCost').textContent = estimatedCost > 0 ? `${estimatedCost.toFixed(0)} RON` : '-';
-            
-            // Sync users (simulation)
-            document.getElementById('syncUsers').textContent = syncConfig.enabled ? '2' : '1';
         }
 
         function isReadThisMonth(type) {
@@ -2296,7 +2292,7 @@
             }
         });
 
-        console.log('🏠 Aplicația Utilitățile Familiei PWA v2.0 încărcată cu succes!');
+        console.log('🏠 Aplicația Utilitățile Familiei v2.0 încărcată cu succes - documentele auto cu ambele date!');
     </script>
 
     <!-- PWA Service Worker -->
