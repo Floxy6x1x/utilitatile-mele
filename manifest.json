@@ -1,42 +1,50 @@
 {
   "name": "Utilitățile Mele PWA",
   "short_name": "Utilități",
-  "description": "Aplicație PWA pentru managementul utilităților casnice cu reminder-uri și sincronizare",
+  "description": "Aplicație pentru gestionarea indexurilor și întreținerii mașinii",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#667eea",
+  "background_color": "#ffffff",
   "theme_color": "#4CAF50",
   "orientation": "portrait-primary",
   "scope": "./",
+  "lang": "ro",
+  "categories": ["utilities", "lifestyle", "productivity"],
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSI0OCIgZmlsbD0iIzY2N2VlYSIvPjxwYXRoIGQ9Ik05NiA0OEw3MiA5NkgxMjBMOTYgMTQ0TDEyMCA5Nkg3Mkw5NiA0OFoiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTQ4IDk2SDcyVjEyMEg0OFY5NloiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTEyMCA5NkgxNDRWMTIwSDEyMFY5NloiIGZpbGw9IndoaXRlIi8+PC9zdmc+",
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9InVybCgjZ3JhZGllbnQwX2xpbmVhcl8xXzEpIi8+CjxwYXRoIGQ9Ik05NiA0OEM3NC4zNDM0IDQ4IDU2IDY2LjM0MzQgNTYgODhWMTA0QzU2IDEyNS42NTcgNzQuMzQzNCAxNDQgOTYgMTQ0QzExNy42NTcgMTQ0IDEzNiAxMjUuNjU3IDEzNiAxMDRWODhDMTM2IDY2LjM0MzQgMTE3LjY1NyA0OCA5NiA0OFoiIGZpbGw9IndoaXRlIi8+CjxjaXJjbGUgY3g9Ijc2IiBjeT0iNzYiIHI9IjgiIGZpbGw9IiM0Q0FGNTBGNE9QQUNJVFkiLz4KPGJ4cmNsZSBjeD0iMTE2IiBjeT0iNzYiIHI9IjgiIGZpbGw9IiM0Q0FGNTBGNE9QQUNJVFkiLz4KPHN0ZXMgZD0iTTcyIDExMkMzNiAxMTYgMTE2IDExNkMxMjAgMTEyIDEyOCAxMTIgMTI4IDEyMEM3MiAxMjAgNzIgMTEyWiIgZmlsbD0iIzRDQUY1MEY0T1BBQ0lUWSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudDBfbGluZWFyXzFfMSIgeDE9IjAiIHkxPSIwIiB4Mj0iMTkyIiB5Mj0iMTkyIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9IiM0Q0FGNTBIUEU6IjAuMjYyMDg1IiBzdG9wLWNvbG9yPSIjMjE5NkYzIi8+CjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzlDMjdCMCIvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+Cjwvc3ZnPgo=",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMjgiIGZpbGw9IiM2NjdlZWEiLz48cGF0aCBkPSJNMjU2IDEyOEwxOTIgMjU2SDMyMEwyNTYgMzg0TDMyMCAyNTZIMTkyTDI1NiAxMjhaIiBmaWxsPSJ3aGl0ZSIvPjxwYXRoIGQ9Ik0xMjggMjU2SDE5MlYzMjBIMTI4VjI1NloiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTMyMCAyNTZIMzg0VjMyMEgzMjBWMjU2WiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=",
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9InVybCgjZ3JhZGllbnQwX2xpbmVhcl8xXzEpIi8+CjxwYXRoIGQ9Ik0yNTYgMTI4QzE5OC43MDEgMTI4IDE1MiAxNzQuNzAxIDE1MiAyMzJWMjc2QzE1MiAzMzMuMjk5IDE5OC43MDEgMzgwIDI1NiAzODBDMzEzLjI5OSAzODAgMzYwIDMzMy4yOTkgMzYwIDI3NlYyMzJDMzYwIDE3NC43MDEgMzEzLjI5OSAxMjggMjU2IDEyOFoiIGZpbGw9IndoaXRlIi8+CjxjaXJjbGUgY3g9IjIwNCIgY3k9IjIwNCIgcj0iMjAiIGZpbGw9IiM0Q0FGNTBGNE9QQUNJVFkiLz4KPGJ4cmNsZSBjeD0iMzA4IiBjeT0iMjA0IiByPSIyMCIgZmlsbD0iIzRDQUY1MEY0T1BBQ0lUWSIvPgo8c3RlcyBkPSJNMTkyIDI5NkMxOTIgMzA4IDMwOCAzMDhDMzIwIDI5NiAzMjAgMzA4IDMyMCAzMjBDMTkyIDMyMCAxOTIgMjk2WiIgZmlsbD0iIzRDQUY1MEY0T1BBQ0lUWSIvPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudDBfbGluZWFyXzFfMSIgeDE9IjAiIHkxPSIwIiB4Mj0iNTEyIiB5Mj0iNTEyIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxzdG9wIHN0b3AtY29sb3I9IiM0Q0FGNTBIUEU6IjAuMjYyMDg1IiBzdG9wLWNvbG9yPSIjMjE5NkYzIi8+CjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzlDMjdCMCIvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+Cjwvc3ZnPgo=",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
     {
-      "name": "Citire rapidă",
-      "short_name": "Citire",
-      "description": "Citește rapid indexurile",
+      "name": "Citește Indexuri",
+      "short_name": "Indexuri",
+      "description": "Adaugă citiri rapide",
       "url": "./?tab=meters",
-      "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIyNCIgZmlsbD0iIzRDQUY1MCIvPjx0ZXh0IHg9IjQ4IiB5PSI1NiIgZm9udC1mYW1pbHk9InN5c3RlbS11aSIgZm9udC1zaXplPSI0OCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjPC08+8L3RleHQ+PC9zdmc+", "sizes": "96x96" }]
+      "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iMTIiIGZpbGw9IiM0Q0FGNTAIUCJZLZ4KPHBhdGggZD0iTTQ4IDI0QzM3LjE3MTYgMjQgMjggMzMuMTcxNiAyOCA0NFY1MkMyOCA2Mi44Mjg0IDM3LjE3MTYgNzIgNDggNzJDNTguODI4NCA3MiA2OCA2Mi44Mjg0IDY4IDUyVjQ0QzY4IDMzLjE3MTYgNTguODI4NCAyNCA0OCAyNFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=", "sizes": "96x96" }]
     },
     {
       "name": "Mașina",
       "short_name": "Auto",
-      "description": "Status documente auto",
+      "description": "Întreținere și documente",
       "url": "./?tab=car",
-      "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIyNCIgZmlsbD0iIzIxOTZGMyIvPjx0ZXh0IHg9IjQ4IiB5PSI1NiIgZm9udC1mYW1pbHk9InN5c3RlbS11aSIgZm9udC1zaXplPSI0OCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPvCfmpc8L3RleHQ+PC9zdmc+", "sizes": "96x96" }]
+      "icons": [{ "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iMTIiIGZpbGw9IiNGRjk4MDAiLz4KPHN2ZyB4PSIyNCIgeT0iMzIiIHdpZHRoPSI0OCIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDQ4IDMyIiBmaWxsPSJ3aGl0ZSI+CjxyZWN0IHdpZHRoPSI0OCIgaGVpZ2h0PSIxNiIgcng9IjgiLz4KPGN4cmNsZSBjeD0iMTIiIGN5PSIyNCIgcj0iNCIvPgo8Y2lyY2xlIGN4PSIzNiIgY3k9IjI0IiByPSI0Ii8+Cjwvc3ZnPgo8L3N2Zz4K", "sizes": "96x96" }]
     }
   ],
-  "categories": ["utilities", "productivity", "lifestyle"],
-  "lang": "ro",
-  "dir": "ltr"
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
 }
