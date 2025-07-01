@@ -2,12 +2,12 @@
   "name": "Utilitățile Mele PWA",
   "short_name": "Utilități",
   "description": "Aplicație pentru gestionarea indexurilor și întreținerii mașinii",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4CAF50",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "scope": "./",
   "lang": "ro",
   "categories": ["utilities", "lifestyle", "productivity"],
   "icons": [
@@ -29,7 +29,7 @@
       "name": "Citește Indexuri",
       "short_name": "Indexuri",
       "description": "Adaugă citiri rapide",
-      "url": "/?tab=meters",
+      "url": "./?tab=meters",
       "icons": [{ 
         "src": "shortcut-meters.svg", 
         "sizes": "96x96", 
@@ -40,7 +40,7 @@
       "name": "Mașina",
       "short_name": "Auto",
       "description": "Întreținere și documente",
-      "url": "/?tab=car",
+      "url": "./?tab=car",
       "icons": [{ 
         "src": "shortcut-car.svg", 
         "sizes": "96x96", 
