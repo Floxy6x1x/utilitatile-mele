@@ -1,21 +1,9 @@
 {
-  "name": "📊 Indexuri & Reminder-uri v3.0",
-  "short_name": "Indexuri v3.0",
-  "description": "Aplicație PWA pentru managementul indexurilor de utilități",
+  "name": "Utilitățile Mele v4.0",
+  "short_name": "Utilități",
+  "description": "Aplicație pentru managementul utilităților",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4CAF50",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "theme_color": "#4CAF50"
 }
