@@ -1,92 +1,29 @@
 {
   "name": "Utilitățile Mele PWA",
   "short_name": "Utilități",
-  "description": "Aplicație pentru gestionarea indexurilor și întreținerii mașinii",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4CAF50",
-  "orientation": "portrait-primary",
   "scope": ".",
-  "lang": "ro",
-  "categories": ["utilities", "lifestyle", "productivity"],
   "icons": [
     {
-      "src": "icon-192.svg",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-192.svg",
-      "sizes": "192x192", 
-      "type": "image/svg+xml",
+      "src": "maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icon-512.svg",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "icon-512.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "screenshot1.png",
-      "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "screenshot2.png", 
-      "sizes": "720x540",
-      "type": "image/png",
-      "form_factor": "wide"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Citește Indexuri",
-      "short_name": "Indexuri",
-      "description": "Adaugă citiri rapide",
-      "url": "?tab=meters",
-      "icons": [{ 
-        "src": "shortcut-meters.svg", 
-        "sizes": "96x96", 
-        "type": "image/svg+xml" 
-      }]
-    },
-    {
-      "name": "Mașina",
-      "short_name": "Auto",
-      "description": "Întreținere și documente",
-      "url": "?tab=car",
-      "icons": [{ 
-        "src": "shortcut-car.svg", 
-        "sizes": "96x96", 
-        "type": "image/svg+xml" 
-      }]
-    }
-  ],
-  "prefer_related_applications": false,
-  "related_applications": [],
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  },
-  "display_override": ["standalone", "minimal-ui"],
-  "protocol_handlers": [
-    {
-      "protocol": "web+utilities",
-      "url": "/?handler=%s"
     }
   ]
 }
