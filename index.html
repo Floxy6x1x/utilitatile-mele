@@ -522,6 +522,7 @@
                     <div class="meter-info">
                         <h4>Schimb Ulei</h4>
                         <div class="meter-last" id="oilChangeLast">Ultima dată: -</div>
+                        <small style="color: #666;">Recomandat la 6 luni sau 10.000 km</small>
                     </div>
                     <div class="meter-current" id="oilChangeNext">--- zile</div>
                     <div class="btn-group">
@@ -529,14 +530,61 @@
                         <button class="btn btn-primary" onclick="editOilChange()">✏️ Editează</button>
                     </div>
                 </div>
+            </div>
+
+            <div class="card">
+                <h3>📄 Documente Auto</h3>
                 <div class="meter-grid">
                     <div class="meter-info">
-                        <h4>Asigurare Auto</h4>
+                        <h4>ITP (Inspecție Tehnică)</h4>
+                        <div class="meter-last" id="itpLast">Expirare: -</div>
+                        <small style="color: #666;">Obligatoriu anual pentru mașini > 12 ani</small>
+                    </div>
+                    <div class="meter-current" id="itpStatus">---</div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="updateITP()">📄 Actualizează</button>
+                        <a href="https://itp.ro/programare" target="_blank" class="btn btn-info">🌐 Programează ITP</a>
+                    </div>
+                </div>
+                
+                <div class="meter-grid">
+                    <div class="meter-info">
+                        <h4>Rovinietă</h4>
+                        <div class="meter-last" id="rovignetteLast">Expirare: -</div>
+                        <small style="color: #666;">Obligatorie pentru drumuri naționale</small>
+                    </div>
+                    <div class="meter-current" id="rovignetteStatus">---</div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="updateRovignette()">📄 Actualizează</button>
+                        <a href="https://roviniete.ro/" target="_blank" class="btn btn-success">🛒 Cumpără Online</a>
+                        <a href="https://www.emag.ro/rovinieta" target="_blank" class="btn btn-warning">🛍️ eMAG</a>
+                    </div>
+                </div>
+
+                <div class="meter-grid">
+                    <div class="meter-info">
+                        <h4>Asigurare RCA</h4>
                         <div class="meter-last" id="insuranceLast">Expirare: -</div>
+                        <small style="color: #666;">Obligatoriu și verificat de poliție</small>
                     </div>
                     <div class="meter-current" id="insuranceStatus">---</div>
                     <div class="btn-group">
                         <button class="btn btn-primary" onclick="updateInsurance()">📄 Actualizează</button>
+                        <a href="https://pago.ro/" target="_blank" class="btn btn-success">💳 Pago.ro</a>
+                        <a href="https://www.compario.ro/asigurari-rca/" target="_blank" class="btn btn-info">📊 Compară prețuri</a>
+                    </div>
+                </div>
+
+                <div class="meter-grid">
+                    <div class="meter-info">
+                        <h4>Asigurare CASCO</h4>
+                        <div class="meter-last" id="cascoLast">Expirare: -</div>
+                        <small style="color: #666;">Opțională - protecție completă</small>
+                    </div>
+                    <div class="meter-current" id="cascoStatus">---</div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="updateCasco()">📄 Actualizează</button>
+                        <a href="https://pago.ro/casco" target="_blank" class="btn btn-success">💳 Pago.ro CASCO</a>
                     </div>
                 </div>
             </div>
@@ -675,7 +723,11 @@
                     car: {
                         lastOilChange: null,
                         oilChangeInterval: 180, // days
-                        insurance: null
+                        insurance: null,      // RCA expiry date
+                        itp: null,           // ITP expiry date  
+                        rovignette: null,    // Rovinietă expiry date
+                        rovignetteType: 'anual', // tip rovinietă
+                        casco: null          // CASCO expiry date
                     },
                     prices: {
                         water: 15.50,
@@ -793,45 +845,144 @@
                 const now = new Date();
                 const currentMonth = now.getMonth();
                 const currentYear = now.getFullYear();
+                const currentDay = now.getDate();
 
-                // Generate reminder for 20th of each month
-                const reminderDate = new Date(currentYear, currentMonth, 20);
-                if (reminderDate < now) {
+                // Calculează data 20 a lunii curente sau următoare
+                let reminderDate = new Date(currentYear, currentMonth, 20);
+                
+                // Dacă am trecut de 20, setează pentru luna următoare
+                if (currentDay > 20) {
                     reminderDate.setMonth(currentMonth + 1);
                 }
 
-                this.data.reminders = [
-                    {
-                        id: 'water-monthly',
-                        title: 'Citire Apometre',
-                        description: 'Este timpul să citești apometrele (baie și bucătărie)',
-                        dueDate: reminderDate.toISOString().split('T')[0],
-                        type: 'water',
-                        recurring: true
-                    },
-                    {
-                        id: 'utilities-monthly',
-                        title: 'Citire Gaz & Electricitate',
-                        description: 'Citește contoarele de gaz și electricitate',
-                        dueDate: reminderDate.toISOString().split('T')[0],
-                        type: 'utilities',
-                        recurring: true
-                    }
-                ];
+                // Reset reminders pentru a fi siguri că avem tot timpul cele actuale
+                this.data.reminders = [];
 
-                // Car reminders
+                // REMINDER pentru APOMETRE - data 20
+                this.data.reminders.push({
+                    id: 'water-monthly-20',
+                    title: '💧 Citire Apometre - Data 20',
+                    description: 'Este data 20! Timp să citești apometrele din baie și bucătărie',
+                    dueDate: reminderDate.toISOString().split('T')[0],
+                    type: 'water',
+                    recurring: true,
+                    icon: '💧',
+                    priority: 'high'
+                });
+
+                // REMINDER pentru GAZ & ELECTRICITATE - data 20  
+                this.data.reminders.push({
+                    id: 'utilities-monthly-20',
+                    title: '⚡ Citire Gaz & Electricitate - Data 20',
+                    description: 'Este data 20! Citește contoarele de gaz și electricitate',
+                    dueDate: reminderDate.toISOString().split('T')[0],
+                    type: 'utilities',
+                    recurring: true,
+                    icon: '⚡',
+                    priority: 'high'
+                });
+
+                // REMINDER SPECIAL pentru data 20 (azi dacă este 20)
+                if (currentDay === 20) {
+                    this.data.reminders.push({
+                        id: 'today-is-20',
+                        title: '🚨 ASTĂZI este 20!',
+                        description: 'Citește TOATE contoarele astăzi! Apă, gaz, electricitate.',
+                        dueDate: now.toISOString().split('T')[0],
+                        type: 'urgent',
+                        recurring: false,
+                        icon: '🚨',
+                        priority: 'urgent'
+                    });
+                }
+
+                // MAȘINA - Schimb ulei (la 6 luni)
                 if (this.data.car.lastOilChange) {
                     const lastOil = new Date(this.data.car.lastOilChange);
                     const nextOil = new Date(lastOil);
-                    nextOil.setDate(lastOil.getDate() + this.data.car.oilChangeInterval);
+                    nextOil.setMonth(lastOil.getMonth() + 6); // La 6 luni
 
                     this.data.reminders.push({
                         id: 'oil-change',
-                        title: 'Schimb Ulei',
-                        description: 'Este timpul pentru schimbul de ulei',
+                        title: '🔧 Schimb Ulei Auto',
+                        description: 'Este timpul pentru schimbul de ulei (la 6 luni)',
                         dueDate: nextOil.toISOString().split('T')[0],
                         type: 'car',
-                        recurring: false
+                        recurring: false,
+                        icon: '🔧',
+                        priority: 'medium'
+                    });
+                }
+
+                // ITP - reminder cu 30 zile înainte
+                if (this.data.car.itp) {
+                    const itpDate = new Date(this.data.car.itp);
+                    const reminderITP = new Date(itpDate);
+                    reminderITP.setDate(itpDate.getDate() - 30); // Cu 30 zile înainte
+
+                    this.data.reminders.push({
+                        id: 'itp-reminder',
+                        title: '📄 ITP Auto expiriră în 30 zile',
+                        description: 'Programează-te pentru ITP! Linkuri disponibile în secțiunea Mașina.',
+                        dueDate: reminderITP.toISOString().split('T')[0],
+                        type: 'car',
+                        recurring: false,
+                        icon: '📄',
+                        priority: 'high'
+                    });
+                }
+
+                // ROVINIETĂ - reminder cu 7 zile înainte
+                if (this.data.car.rovignette) {
+                    const rovignetteDate = new Date(this.data.car.rovignette);
+                    const reminderRov = new Date(rovignetteDate);
+                    reminderRov.setDate(rovignetteDate.getDate() - 7); // Cu 7 zile înainte
+
+                    this.data.reminders.push({
+                        id: 'rovignette-reminder',
+                        title: '🛣️ Rovinietă expiriră în 7 zile',
+                        description: 'Cumpără rovinietă nouă! Linkuri pentru cumpărare online în app.',
+                        dueDate: reminderRov.toISOString().split('T')[0],
+                        type: 'car',
+                        recurring: false,
+                        icon: '🛣️',
+                        priority: 'high'
+                    });
+                }
+
+                // ASIGURARE RCA - reminder cu 15 zile înainte
+                if (this.data.car.insurance) {
+                    const insuranceDate = new Date(this.data.car.insurance);
+                    const reminderIns = new Date(insuranceDate);
+                    reminderIns.setDate(insuranceDate.getDate() - 15); // Cu 15 zile înainte
+
+                    this.data.reminders.push({
+                        id: 'insurance-reminder',
+                        title: '🛡️ Asigurare RCA expiriră în 15 zile',
+                        description: 'Fă asigurarea RCA! Recomandăm Pago.ro pentru prețuri bune.',
+                        dueDate: reminderIns.toISOString().split('T')[0],
+                        type: 'car',
+                        recurring: false,
+                        icon: '🛡️',
+                        priority: 'high'
+                    });
+                }
+
+                // CASCO - reminder cu 15 zile înainte
+                if (this.data.car.casco) {
+                    const cascoDate = new Date(this.data.car.casco);
+                    const reminderCasco = new Date(cascoDate);
+                    reminderCasco.setDate(cascoDate.getDate() - 15); // Cu 15 zile înainte
+
+                    this.data.reminders.push({
+                        id: 'casco-reminder',
+                        title: '🛡️ Asigurare CASCO expiriră în 15 zile',
+                        description: 'Renovează asigurarea CASCO pentru protecție completă.',
+                        dueDate: reminderCasco.toISOString().split('T')[0],
+                        type: 'car',
+                        recurring: false,
+                        icon: '🛡️',
+                        priority: 'medium'
                     });
                 }
             }
@@ -839,14 +990,18 @@
             checkReminders() {
                 const now = new Date();
                 const today = now.toISOString().split('T')[0];
+                const currentDay = now.getDate();
                 const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
                 let activeReminders = 0;
                 let overdueCount = 0;
                 let dueSoonCount = 0;
+                let urgentCount = 0;
 
                 this.data.reminders.forEach(reminder => {
-                    if (reminder.dueDate <= today) {
+                    if (reminder.priority === 'urgent') {
+                        urgentCount++;
+                    } else if (reminder.dueDate <= today) {
                         overdueCount++;
                     } else if (reminder.dueDate <= in7Days) {
                         dueSoonCount++;
@@ -856,11 +1011,18 @@
 
                 document.getElementById('activeReminders').textContent = activeReminders;
 
-                // Show alerts for overdue reminders
-                if (overdueCount > 0) {
-                    this.showAlert('danger', `Aveți ${overdueCount} reminder-uri restante!`);
+                // NOTIFICARE SPECIALĂ pentru data 20
+                if (currentDay === 20) {
+                    this.showAlert('warning', '🚨 ASTĂZI este 20! Este timpul să citești TOATE contoarele: apă, gaz, electricitate!');
+                }
+
+                // Show alerts for different types of reminders
+                if (urgentCount > 0) {
+                    this.showAlert('danger', `🚨 ${urgentCount} reminder-uri URGENTE!`);
+                } else if (overdueCount > 0) {
+                    this.showAlert('danger', `⚠️ Aveți ${overdueCount} reminder-uri restante!`);
                 } else if (dueSoonCount > 0) {
-                    this.showAlert('warning', `Aveți ${dueSoonCount} reminder-uri pentru următoarele 7 zile!`);
+                    this.showAlert('warning', `📅 Aveți ${dueSoonCount} reminder-uri pentru următoarele 7 zile!`);
                 }
 
                 this.updateRemindersList();
@@ -876,15 +1038,30 @@
                     return;
                 }
 
-                const html = this.data.reminders.map(reminder => {
+                // Sortează reminder-urile după prioritate și dată
+                const sortedReminders = this.data.reminders.sort((a, b) => {
+                    const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+                    const priorityA = priorityOrder[a.priority] || 3;
+                    const priorityB = priorityOrder[b.priority] || 3;
+                    
+                    if (priorityA !== priorityB) return priorityA - priorityB;
+                    return new Date(a.dueDate) - new Date(b.dueDate);
+                });
+
+                const html = sortedReminders.map(reminder => {
                     const dueDate = new Date(reminder.dueDate);
                     const isOverdue = reminder.dueDate < today;
                     const daysDiff = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
                     
                     let statusClass = '';
                     let statusText = '';
+                    let priorityClass = '';
                     
-                    if (isOverdue) {
+                    if (reminder.priority === 'urgent') {
+                        statusClass = 'overdue';
+                        priorityClass = 'urgent';
+                        statusText = '🚨 URGENT!';
+                    } else if (isOverdue) {
                         statusClass = 'overdue';
                         statusText = `Restant ${Math.abs(daysDiff)} zile`;
                     } else if (daysDiff <= 7) {
@@ -894,15 +1071,19 @@
                         statusText = `În ${daysDiff} zile`;
                     }
 
+                    const icon = reminder.icon || '🔔';
+
                     return `
-                        <div class="reminder-item ${statusClass}">
+                        <div class="reminder-item ${statusClass} ${priorityClass}" style="${reminder.priority === 'urgent' ? 'border: 2px solid #dc3545; background: rgba(220, 53, 69, 0.1);' : ''}">
                             <div>
-                                <h4>${reminder.title}</h4>
+                                <h4>${icon} ${reminder.title}</h4>
                                 <p>${reminder.description}</p>
                                 <small>Scadență: ${new Date(reminder.dueDate).toLocaleDateString('ro-RO')}</small>
+                                ${reminder.type === 'car' ? '<small style="display: block; color: #007bff;">🚗 Auto</small>' : ''}
+                                ${reminder.type === 'water' || reminder.type === 'utilities' ? '<small style="display: block; color: #28a745;">🏠 Utilități</small>' : ''}
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-weight: 600; color: ${isOverdue ? 'var(--danger)' : 'var(--primary)'};">
+                                <div style="font-weight: 600; color: ${isOverdue || reminder.priority === 'urgent' ? 'var(--danger)' : 'var(--primary)'};">
                                     ${statusText}
                                 </div>
                                 <button class="btn btn-success" onclick="app.markReminderDone('${reminder.id}')" style="margin-top: 5px;">
@@ -958,26 +1139,83 @@
                 this.data.car.lastOilChange = today;
                 this.saveData();
                 this.setupReminders();
-                this.showAlert('success', 'Schimb ulei înregistrat!');
+                this.showAlert('success', 'Schimb ulei înregistrat! Următorul la 6 luni.');
             }
 
             editOilChange() {
                 const date = prompt('Introduceți data schimbului de ulei (YYYY-MM-DD):');
-                if (date) {
+                if (date && this.isValidDate(date)) {
                     this.data.car.lastOilChange = date;
                     this.saveData();
                     this.setupReminders();
                     this.showAlert('success', 'Data schimbului de ulei actualizată!');
+                } else if (date) {
+                    this.showAlert('warning', 'Introduceți o dată validă (YYYY-MM-DD)!');
+                }
+            }
+
+            updateITP() {
+                const date = prompt('Introduceți data expirării ITP (YYYY-MM-DD):');
+                if (date && this.isValidDate(date)) {
+                    this.data.car.itp = date;
+                    this.saveData();
+                    this.setupReminders();
+                    this.showAlert('success', 'Data ITP actualizată! Reminder setat cu 30 zile înainte.');
+                } else if (date) {
+                    this.showAlert('warning', 'Introduceți o dată validă (YYYY-MM-DD)!');
+                }
+            }
+
+            updateRovignette() {
+                const type = prompt('Ce tip de rovinietă? (anual/lunar/săptămânal):');
+                if (!type) return;
+                
+                const date = prompt('Introduceți data expirării rovignetei (YYYY-MM-DD):');
+                if (date && this.isValidDate(date)) {
+                    this.data.car.rovignette = date;
+                    this.data.car.rovignetteType = type.toLowerCase();
+                    this.saveData();
+                    this.setupReminders();
+                    this.showAlert('success', `Rovinietă ${type} actualizată! Reminder setat cu 7 zile înainte.`);
+                } else if (date) {
+                    this.showAlert('warning', 'Introduceți o dată validă (YYYY-MM-DD)!');
                 }
             }
 
             updateInsurance() {
-                const date = prompt('Introduceți data expirării asigurării (YYYY-MM-DD):');
-                if (date) {
+                const date = prompt('Introduceți data expirării asigurării RCA (YYYY-MM-DD):');
+                if (date && this.isValidDate(date)) {
                     this.data.car.insurance = date;
                     this.saveData();
-                    this.showAlert('success', 'Data asigurării actualizată!');
+                    this.setupReminders();
+                    this.showAlert('success', 'Data asigurării RCA actualizată! Reminder setat cu 15 zile înainte.');
+                } else if (date) {
+                    this.showAlert('warning', 'Introduceți o dată validă (YYYY-MM-DD)!');
                 }
+            }
+
+            updateCasco() {
+                const date = prompt('Introduceți data expirării asigurării CASCO (YYYY-MM-DD):');
+                if (date && this.isValidDate(date)) {
+                    this.data.car.casco = date;
+                    this.saveData();
+                    this.setupReminders();
+                    this.showAlert('success', 'Data asigurării CASCO actualizată! Reminder setat cu 15 zile înainte.');
+                } else if (date) {
+                    this.showAlert('warning', 'Introduceți o dată validă (YYYY-MM-DD)!');
+                }
+            }
+
+            isValidDate(dateString) {
+                const regex = /^\d{4}-\d{2}-\d{2}$/;
+                if (!regex.test(dateString)) return false;
+                
+                const date = new Date(dateString);
+                const timestamp = date.getTime();
+                
+                if (typeof timestamp !== 'number' || Number.isNaN(timestamp)) return false;
+                
+                return date.toISOString().startsWith(dateString);
             }
 
             // =============================================================================
@@ -1281,7 +1519,7 @@
                 if (this.data.car.lastOilChange) {
                     const lastOil = new Date(this.data.car.lastOilChange);
                     const nextOil = new Date(lastOil);
-                    nextOil.setDate(lastOil.getDate() + this.data.car.oilChangeInterval);
+                    nextOil.setMonth(lastOil.getMonth() + 6); // 6 luni pentru ulei
                     const daysUntil = Math.ceil((nextOil - new Date()) / (1000 * 60 * 60 * 24));
                     
                     document.getElementById('oilChangeLast').textContent = 
@@ -1293,6 +1531,35 @@
                     document.getElementById('oilChangeNext').textContent = '--- zile';
                 }
                 
+                // ITP
+                if (this.data.car.itp) {
+                    const itpDate = new Date(this.data.car.itp);
+                    const daysUntil = Math.ceil((itpDate - new Date()) / (1000 * 60 * 60 * 24));
+                    
+                    document.getElementById('itpLast').textContent = 
+                        `Expirare: ${itpDate.toLocaleDateString('ro-RO')}`;
+                    document.getElementById('itpStatus').textContent = 
+                        daysUntil > 0 ? `${daysUntil} zile` : 'Expirat!';
+                } else {
+                    document.getElementById('itpLast').textContent = 'Expirare: -';
+                    document.getElementById('itpStatus').textContent = '---';
+                }
+
+                // Rovinietă  
+                if (this.data.car.rovignette) {
+                    const rovignetteDate = new Date(this.data.car.rovignette);
+                    const daysUntil = Math.ceil((rovignetteDate - new Date()) / (1000 * 60 * 60 * 24));
+                    
+                    document.getElementById('rovignetteLast').textContent = 
+                        `Expirare: ${rovignetteDate.toLocaleDateString('ro-RO')} (${this.data.car.rovignetteType || 'anual'})`;
+                    document.getElementById('rovignetteStatus').textContent = 
+                        daysUntil > 0 ? `${daysUntil} zile` : 'Expirată!';
+                } else {
+                    document.getElementById('rovignetteLast').textContent = 'Expirare: -';
+                    document.getElementById('rovignetteStatus').textContent = '---';
+                }
+                
+                // Asigurare RCA
                 if (this.data.car.insurance) {
                     const insurance = new Date(this.data.car.insurance);
                     const daysUntil = Math.ceil((insurance - new Date()) / (1000 * 60 * 60 * 24));
@@ -1304,6 +1571,20 @@
                 } else {
                     document.getElementById('insuranceLast').textContent = 'Expirare: -';
                     document.getElementById('insuranceStatus').textContent = '---';
+                }
+
+                // CASCO
+                if (this.data.car.casco) {
+                    const casco = new Date(this.data.car.casco);
+                    const daysUntil = Math.ceil((casco - new Date()) / (1000 * 60 * 60 * 24));
+                    
+                    document.getElementById('cascoLast').textContent = 
+                        `Expirare: ${casco.toLocaleDateString('ro-RO')}`;
+                    document.getElementById('cascoStatus').textContent = 
+                        daysUntil > 0 ? `${daysUntil} zile` : 'Expirată!';
+                } else {
+                    document.getElementById('cascoLast').textContent = 'Expirare: -';
+                    document.getElementById('cascoStatus').textContent = '---';
                 }
                 
                 // Update stats
@@ -1440,6 +1721,18 @@
 
         function updateInsurance() {
             app.updateInsurance();
+        }
+
+        function updateITP() {
+            app.updateITP();
+        }
+
+        function updateRovignette() {
+            app.updateRovignette();
+        }
+
+        function updateCasco() {
+            app.updateCasco();
         }
 
         function exportExcel() {
