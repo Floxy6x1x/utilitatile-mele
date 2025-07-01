@@ -14,8 +14,9 @@ let syncConfig = {
     familyCode: null,
     lastSyncTimestamp: 0,
     deviceId: null,
-    syncUrl: 'https://api.jsonbin.io/v3/b/', // JSONBin.io pentru demo
-    apiKey: '$2a$10$...' // Înlocuiește cu API key real
+    syncUrl: 'https://api.jsonbin.io/v3/b/',
+    apiKey: '$2a$10$ls5qozW/OLFyJa7ixZD9NOW6/oYQFVOiKT7jg7zHSt9X9osnMGbVO',
+    binId: null
 };
 
 // === INIȚIALIZARE APLICAȚIE ===
@@ -85,11 +86,19 @@ async function initializeBidirectionalSync() {
     const familyCode = localStorage.getItem('familyCode');
     if (familyCode) {
         syncConfig.familyCode = familyCode;
-        syncConfig.enabled = true;
         
-        if (isOnline) {
-            await performInitialSync();
-            startContinuousSync();
+        // Obține bin ID pentru familie
+        const binId = getBinIdForFamily(familyCode);
+        if (binId) {
+            syncConfig.binId = binId;
+            syncConfig.enabled = true;
+            
+            if (isOnline) {
+                await performInitialSync();
+                startContinuousSync();
+            }
+        } else {
+            console.log('Nu există bin ID pentru familia:', familyCode);
         }
     }
 }
@@ -174,11 +183,10 @@ async function performIncrementalSync() {
 // === FUNCȚII SERVER COMMUNICATION ===
 
 async function fetchFamilyDataFromServer() {
-    if (!syncConfig.familyCode) return null;
+    if (!syncConfig.familyCode || !syncConfig.binId) return null;
     
     try {
-        // Pentru demo folosim JSONBin.io - în producție folosești Firebase/Supabase
-        const response = await fetch(`${syncConfig.syncUrl}${syncConfig.familyCode}/latest`, {
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${syncConfig.binId}/latest`, {
             method: 'GET',
             headers: {
                 'X-Master-Key': syncConfig.apiKey
@@ -188,6 +196,9 @@ async function fetchFamilyDataFromServer() {
         if (response.ok) {
             const data = await response.json();
             return data.record;
+        } else if (response.status === 404) {
+            console.log('Bin nu există încă');
+            return null;
         }
     } catch (error) {
         console.error('❌ Eroare fetch server:', error);
@@ -197,7 +208,7 @@ async function fetchFamilyDataFromServer() {
 }
 
 async function uploadLocalChangesToServer() {
-    if (!syncConfig.familyCode) return;
+    if (!syncConfig.familyCode || !syncConfig.binId) return;
     
     try {
         const dataToSync = {
@@ -210,8 +221,7 @@ async function uploadLocalChangesToServer() {
             devices: updateDeviceList()
         };
         
-        // Pentru demo - în producție folosești Firebase/Supabase
-        const response = await fetch(`${syncConfig.syncUrl}${syncConfig.familyCode}`, {
+        const response = await fetch(`https://api.jsonbin.io/v3/b/${syncConfig.binId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -221,8 +231,10 @@ async function uploadLocalChangesToServer() {
         });
         
         if (response.ok) {
-            // Marchează toate modificările locale ca sincronizate
             markAllReadingsAsSynced();
+            console.log('✅ Date sincronizate cu succes');
+        } else {
+            console.error('❌ Eroare upload:', response.status);
         }
         
     } catch (error) {
@@ -270,6 +282,11 @@ function getDeviceName() {
         localStorage.setItem('deviceName', deviceName);
     }
     return deviceName;
+}
+
+// Helper pentru a obține bin ID-ul
+function getBinIdForFamily(familyCode) {
+    return localStorage.getItem(`binId_${familyCode}`);
 }
 
 // === MERGE LOGIC PENTRU REZOLVAREA CONFLICTELOR ===
@@ -1173,7 +1190,6 @@ async function setupFamilyAdvanced() {
         return;
     }
     
-    // Validare cod familie
     if (code.length < 5) {
         showAlert('❌ Codul familiei trebuie să aibă cel puțin 5 caractere', 'danger');
         return;
@@ -1183,13 +1199,54 @@ async function setupFamilyAdvanced() {
     syncConfig.enabled = true;
     familyData.familyCode = code;
     
-    localStorage.setItem('familyCode', code);
+    // Verifică dacă există deja un bin pentru această familie
+    let binId = localStorage.getItem(`binId_${code}`);
     
+    if (!binId) {
+        // Creează un bin nou pentru familie
+        try {
+            showAlert('🔄 Se creează spațiul pentru familie...', 'info');
+            
+            const response = await fetch('https://api.jsonbin.io/v3/b', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': syncConfig.apiKey,
+                    'X-Bin-Name': `UtilitatiMele_${code}`,
+                    'X-Bin-Private': false
+                },
+                body: JSON.stringify({
+                    familyCode: code,
+                    readings: {},
+                    carData: {},
+                    prices: { water: 15.50, gas: 3.20, electric: 0.65 },
+                    lastModified: Date.now(),
+                    devices: {}
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                binId = data.metadata.id;
+                localStorage.setItem(`binId_${code}`, binId);
+                syncConfig.binId = binId;
+                showAlert(`✅ Familie "${code}" creată cu succes!`, 'success');
+            } else {
+                throw new Error('Eroare la crearea familiei');
+            }
+        } catch (error) {
+            showAlert('❌ Eroare la crearea familiei. Verificați conexiunea.', 'danger');
+            console.error('Eroare creare familie:', error);
+            return;
+        }
+    } else {
+        syncConfig.binId = binId;
+    }
+    
+    localStorage.setItem('familyCode', code);
     document.getElementById('familyCode').textContent = code;
     
     if (isOnline) {
-        showAlert('🔄 Se conectează la familia...', 'info');
-        
         try {
             await performInitialSync();
             startContinuousSync();
