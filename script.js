@@ -1,5 +1,4 @@
-// Utilitățile Mele PWA v4.0 - Script principal
-console.log('🚀 Utilitățile Mele PWA v4.0 - Script încărcat!');
+// Utilitățile Mele - Script principal
 
 // Variabile globale
 let currentTab = 'home';
@@ -11,8 +10,6 @@ let isOnline = navigator.onLine;
 
 // Inițializare aplicație
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📱 Inițializare PWA...');
-    
     // Load data
     loadAllData();
     
@@ -35,15 +32,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update UI
     updateUI();
     updateReminders();
-    
-    console.log('✅ PWA inițializată cu succes!');
 });
 
 // === PWA INSTALL FUNCTIONALITY ===
 function setupPWAInstall() {
     // Listen for beforeinstallprompt event
     window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('📱 PWA poate fi instalată');
         e.preventDefault();
         deferredPrompt = e;
         
@@ -59,8 +53,6 @@ function setupPWAInstall() {
 
     // Listen for appinstalled event
     window.addEventListener('appinstalled', () => {
-        console.log('✅ PWA instalată cu succes!');
-        showAlert('✅ Aplicația a fost instalată cu succes!', 'success');
         deferredPrompt = null;
         
         const installBtns = document.querySelectorAll('#installBtn, #installBtn2');
@@ -74,22 +66,14 @@ function setupPWAInstall() {
 
 function installPWA() {
     if (deferredPrompt) {
-        console.log('📱 Lansare prompt instalare PWA');
         deferredPrompt.prompt();
         
         deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
-                console.log('✅ Utilizatorul a acceptat instalarea');
-                showAlert('🎉 Aplicația se instalează...', 'success');
-            } else {
-                console.log('❌ Utilizatorul a refuzat instalarea');
-                showAlert('ℹ️ Poți instala aplicația oricând din meniu', 'info');
+                // App installing
             }
             deferredPrompt = null;
         });
-    } else {
-        // Fallback instructions
-        showAlert('💡 Pentru a instala aplicația: Deschide meniul browser-ului și selectează "Instalează aplicația" sau "Adaugă pe ecranul principal"', 'info');
     }
 }
 
@@ -100,7 +84,6 @@ function setupNetworkStatus() {
     window.addEventListener('online', () => {
         isOnline = true;
         updateNetworkStatus();
-        showAlert('✅ Conectat la internet - sincronizarea va fi reluată', 'success');
         if (familyData.familyCode) {
             startFamilySync();
         }
@@ -109,7 +92,6 @@ function setupNetworkStatus() {
     window.addEventListener('offline', () => {
         isOnline = false;
         updateNetworkStatus();
-        showAlert('📱 Offline - aplicația funcționează în continuare local', 'warning');
         stopFamilySync();
     });
 }
@@ -134,8 +116,6 @@ function updateNetworkStatus() {
 
 // === TAB MANAGEMENT ===
 function showTab(tabName) {
-    console.log('📋 Schimbare tab:', tabName);
-    
     // Hide all sections
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
@@ -194,10 +174,8 @@ function loadAllData() {
         // Load car data
         const carData = JSON.parse(localStorage.getItem('carData') || '{}');
         familyData.carData = carData;
-        
-        console.log('📊 Date încărcate:', familyData);
     } catch (error) {
-        console.error('❌ Eroare la încărcarea datelor:', error);
+        console.error('Eroare la încărcarea datelor:', error);
         familyData = { readings: {}, prices: { water: 15.50, gas: 3.20, electric: 0.65 }, carData: {} };
     }
 }
@@ -212,14 +190,12 @@ function saveData() {
             localStorage.setItem('familyCode', familyData.familyCode);
         }
         
-        console.log('💾 Date salvate local');
-        
         // Trigger sync if online and family code exists
         if (isOnline && familyData.familyCode) {
             syncWithFamily();
         }
     } catch (error) {
-        console.error('❌ Eroare la salvarea datelor:', error);
+        console.error('Eroare la salvarea datelor:', error);
         showAlert('❌ Eroare la salvarea datelor', 'danger');
     }
 }
@@ -277,7 +253,6 @@ function saveReading() {
     closeForm();
     
     showAlert(`✅ Citire ${currentFormType} salvată: ${value}`, 'success');
-    console.log('📊 Citire salvată:', reading);
 }
 
 function deleteReading(type) {
@@ -687,8 +662,6 @@ function setupFamilySync() {
 }
 
 function startFamilySync() {
-    console.log('👨‍👩‍👧‍👦 Pornire sincronizare familie...');
-    
     if (syncInterval) {
         clearInterval(syncInterval);
     }
@@ -704,7 +677,6 @@ function startFamilySync() {
 }
 
 function stopFamilySync() {
-    console.log('⏹️ Oprire sincronizare familie');
     if (syncInterval) {
         clearInterval(syncInterval);
         syncInterval = null;
@@ -714,9 +686,6 @@ function stopFamilySync() {
 
 function syncWithFamily() {
     // In a real app, this would sync with a backend service
-    console.log('🔄 Sincronizare cu familia:', familyData.familyCode);
-    
-    // Simulate sync (in reality, you'd use Firebase, Supabase, etc.)
     const syncData = {
         familyCode: familyData.familyCode,
         readings: familyData.readings,
@@ -837,8 +806,6 @@ function syncNow() {
 
 // === REPORTS ===
 function generateReport() {
-    console.log('📊 Generare raport...');
-    
     const tableBody = document.getElementById('consumptionTableBody');
     if (!tableBody) return;
     
@@ -975,7 +942,7 @@ function exportExcel() {
             }, 500);
             
         } catch (error) {
-            console.error('❌ Eroare export Excel:', error);
+            console.error('Eroare export Excel:', error);
             hideExportProgress();
             showAlert('❌ Eroare la generarea fișierului Excel', 'danger');
         }
@@ -1038,9 +1005,9 @@ function exportPDF() {
             }, 500);
             
         } catch (error) {
-            console.error('❌ Eroare export PDF:', error);
+            console.error('Eroare export PDF:', error);
             hideExportProgress();
-            showAlert('❌ Eroare la generarea fișierului PDF', 'danger');
+            showAlert('❌ Funcția de export PDF va fi implementată în viitoarea versiune!', 'danger');
         }
     }, 1000);
 }
@@ -1050,8 +1017,7 @@ function shareReport() {
         familyCode: familyData.familyCode,
         readings: familyData.readings,
         carData: familyData.carData,
-        exportDate: new Date().toISOString(),
-        appVersion: '4.0'
+        exportDate: new Date().toISOString()
     };
     
     const jsonString = JSON.stringify(data, null, 2);
@@ -1276,8 +1242,6 @@ function showAlert(message, type = 'info') {
             alertDiv.parentNode.removeChild(alertDiv);
         }
     }, 5000);
-    
-    console.log(`📢 Alert (${type}):`, message);
 }
 
 function formatDate(dateString) {
@@ -1287,6 +1251,3 @@ function formatDate(dateString) {
         return dateString;
     }
 }
-
-// Initialize PWA
-console.log('🎯 Script Utilitățile Mele PWA v4.0 încărcat complet!');
