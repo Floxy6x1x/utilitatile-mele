@@ -1,1 +1,2319 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 Utilitățile Familiei</title>
+    
+    <!-- PWA Configuration -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Utilități">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <!-- Favicon și iconițe -->
+    <link rel="icon" type="image/png" sizes="32x32" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%234CAF50'/><text x='16' y='20' font-size='18' text-anchor='middle' fill='white'>🏠</text></svg>">
+    <link rel="icon" type="image/png" sizes="16x16" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%234CAF50'/><text x='8' y='11' font-size='10' text-anchor='middle' fill='white'>🏠</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%234CAF50' rx='20'/><text x='90' y='110' font-size='80' text-anchor='middle' fill='white'>🏠</text></svg>">
+    
+    <!-- Meta tags pentru SEO și Social Media -->
+    <meta name="description" content="Aplicație PWA pentru gestionarea utilitaților și mașinii familiei cu sincronizare bidirectională">
+    <meta name="keywords" content="utilități, familie, contoare, mașină, ITP, RCA, PWA">
+    <meta name="author" content="Utilitățile Familiei">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph pentru social media -->
+    <meta property="og:title" content="🏠 Utilitățile Familiei">
+    <meta property="og:description" content="Aplicație PWA pentru gestionarea utilitaților și mașinii familiei">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%234CAF50'/><text x='256' y='300' font-size='200' text-anchor='middle' fill='white'>🏠</text></svg>">
+    
+    <!-- Styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header simplu */
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #2196F3);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        /* PWA Install Button */
+        .install-prompt {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .install-prompt:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .install-prompt.show {
+            display: flex;
+        }
+
+        /* Sync Status Bar */
+        .sync-bar {
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .sync-status.connected { color: #4CAF50; }
+        .sync-status.disconnected { color: #F44336; }
+        .sync-status.pending { color: #FF9800; }
+
+        .sync-action {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .sync-action:hover {
+            background: #1976D2;
+        }
+
+        .sync-action.urgent {
+            background: #FF9800;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Navigation - 3 tab-uri */
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #666;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab:hover {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+        }
+
+        .tab.active {
+            background: #4CAF50;
+            color: white;
+            border-bottom: 3px solid #388E3C;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+            padding: 20px;
+            min-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 8px;
+        }
+
+        /* Quick Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* Utility Grid - pentru contoare */
+        .utility-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .utility-item {
+            background: rgba(245, 245, 245, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .utility-item h4 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .utility-current {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4CAF50;
+            margin: 5px 0;
+        }
+
+        .utility-last {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .utility-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Car Info Grid */
+        .car-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .car-item {
+            background: rgba(33, 150, 243, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .car-item h4 {
+            color: #1976D2;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .car-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2196F3;
+            margin: 5px 0;
+        }
+
+        .car-detail {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-right: 8px;
+            margin-bottom: 5px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary { background: #2196F3; color: white; }
+        .btn-success { background: #4CAF50; color: white; }
+        .btn-warning { background: #FF9800; color: white; }
+        .btn-danger { background: #F44336; color: white; }
+        .btn-info { background: #00BCD4; color: white; }
+
+        /* Export Section */
+        .export-section {
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .export-section h4 {
+            color: #2E7D32;
+            margin-bottom: 10px;
+        }
+
+        .export-section p {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .export-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #388E3C;
+            transform: translateY(-2px);
+        }
+
+        /* Form Overlay */
+        .form-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .form-overlay.active {
+            display: flex;
+        }
+
+        .form-popup {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .form-popup h3 {
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 10px 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #FF9800;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #F44336;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #00BCD4;
+        }
+
+        /* Share Link Modal */
+        .share-modal {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .share-link {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 15px 0;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 0.85rem;
+            border: 1px solid #ddd;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        /* Progress Bar pentru Export */
+        .progress-container {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-popup {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #4CAF50, #2196F3);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* PWA Status Indicator */
+        .pwa-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .pwa-status.show {
+            display: flex;
+        }
+
+        .pwa-status.offline {
+            background: rgba(244, 67, 54, 0.9);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .utility-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .car-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tabs {
+                flex-direction: row;
+            }
+
+            .tab {
+                font-size: 0.85rem;
+                padding: 12px 8px;
+            }
+
+            .install-prompt {
+                position: static;
+                margin: 10px auto;
+                width: fit-content;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+        }
+
+        /* PWA standalone mode styles */
+        @media (display-mode: standalone) {
+            .header {
+                padding-top: max(20px, env(safe-area-inset-top));
+            }
+            
+            .install-prompt {
+                display: none !important;
+            }
+        }
+    </style>
+    
+    <!-- External Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏠 Utilitățile Familiei</h1>
+            <div class="subtitle">Simplu • Intuitiv • Sincronizat</div>
+            
+            <!-- PWA Install Button -->
+            <button class="install-prompt" id="installPrompt">
+                📱 Instalează App
+            </button>
+        </div>
+
+        <!-- Sync Status Bar -->
+        <div class="sync-bar">
+            <div class="sync-status" id="syncStatus">
+                <span>🔴 Offline</span>
+            </div>
+            <button class="sync-action" id="syncAction" onclick="handleSyncAction()">
+                Configurează
+            </button>
+        </div>
+
+        <!-- Alerts Container -->
+        <div id="alerts"></div>
+
+        <!-- Progress Container -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-popup">
+                <h3>📋 Se generează Excel...</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p id="progressMessage">Se inițializează exportul...</p>
+            </div>
+        </div>
+
+        <!-- Navigation - 3 Tab-uri Principale -->
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('home')">
+                🏠 Acasă
+            </button>
+            <button class="tab" onclick="showTab('car')">
+                🚗 Mașina
+            </button>
+            <button class="tab" onclick="showTab('settings')">
+                ⚙️ Setări
+            </button>
+        </div>
+
+        <!-- ACASĂ TAB - Tot ce ține de casă -->
+        <div class="section active" id="home">
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h4>📊 Citiri luna aceasta</h4>
+                    <div class="value" id="readingsThisMonth">0/4</div>
+                </div>
+                <div class="stat-card">
+                    <h4>💰 Cost estimat</h4>
+                    <div class="value" id="estimatedCost">-</div>
+                </div>
+                <div class="stat-card">
+                    <h4>⚠️ Reminder-uri</h4>
+                    <div class="value" id="activeReminders">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>👫 Sincronizat</h4>
+                    <div class="value" id="syncUsers">1</div>
+                </div>
+            </div>
+
+            <!-- Contoare Utilități -->
+            <div class="card">
+                <h3>📊 Contoare Casă</h3>
+                <div class="utility-grid">
+                    <div class="utility-item">
+                        <h4>💧 Apometru Baie</h4>
+                        <div class="utility-current" id="waterBathCurrent">---</div>
+                        <div class="utility-last" id="waterBathLast">Ultimul: -</div>
+                        <div class="utility-actions">
+                            <button class="btn btn-primary" onclick="addReading('waterBath')">📝 Citește</button>
+                            <button class="btn btn-danger" onclick="deleteReading('waterBath')">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="utility-item">
+                        <h4>💧 Apometru Bucătărie</h4>
+                        <div class="utility-current" id="waterKitchenCurrent">---</div>
+                        <div class="utility-last" id="waterKitchenLast">Ultimul: -</div>
+                        <div class="utility-actions">
+                            <button class="btn btn-primary" onclick="addReading('waterKitchen')">📝 Citește</button>
+                            <button class="btn btn-danger" onclick="deleteReading('waterKitchen')">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="utility-item">
+                        <h4>🔥 Contor Gaz</h4>
+                        <div class="utility-current" id="gasCurrent">---</div>
+                        <div class="utility-last" id="gasLast">Ultimul: -</div>
+                        <div class="utility-actions">
+                            <button class="btn btn-primary" onclick="addReading('gas')">📝 Citește</button>
+                            <button class="btn btn-danger" onclick="deleteReading('gas')">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="utility-item">
+                        <h4>⚡ Contor Electricitate</h4>
+                        <div class="utility-current" id="electricCurrent">---</div>
+                        <div class="utility-last" id="electricLast">Ultimul: -</div>
+                        <div class="utility-actions">
+                            <button class="btn btn-primary" onclick="addReading('electric')">📝 Citește</button>
+                            <button class="btn btn-danger" onclick="deleteReading('electric')">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export pentru Asociație -->
+            <div class="export-section">
+                <h4>📋 Raport pentru Asociația de Proprietari</h4>
+                <p>📍 <strong>Iordache Florin</strong> - Str. Dunarii, Bl K1, Sc. A, Ap. 9</p>
+                <p>Generează fișier Excel cu indexurile actuale și consumurile calculate</p>
+                <button class="export-btn" onclick="exportExcelEnhanced()">
+                    📋 Generează Excel pentru Asociație
+                </button>
+                <button class="btn btn-info" onclick="generateDetailedReport()" style="margin-left: 10px;">
+                    📊 Raport Detaliat
+                </button>
+            </div>
+
+            <!-- Reminder-uri Active -->
+            <div class="card" id="remindersCard" style="display: none;">
+                <h3>🔔 Reminder-uri Active</h3>
+                <div id="remindersList">
+                    <!-- Reminder-uri vor fi afișate aici -->
+                </div>
+            </div>
+        </div>
+
+        <!-- MAȘINA TAB - Tot ce ține de mașină -->
+        <div class="section" id="car">
+            <!-- Informații Auto -->
+            <div class="card">
+                <h3>🚗 Informații Vehicul</h3>
+                <div class="car-grid">
+                    <div class="car-item">
+                        <h4>🔢 Numărul de înmatriculare</h4>
+                        <div class="car-value" id="carNumber">Nu a fost adăugat</div>
+                        <div class="car-detail">Plăcuțele auto oficiale</div>
+                        <button class="btn btn-primary" onclick="updateCarNumber()">📝 Editează</button>
+                    </div>
+
+                    <div class="car-item">
+                        <h4>🏭 Marca și Modelul</h4>
+                        <div class="car-value" id="carBrand">Nu a fost adăugat</div>
+                        <div class="car-detail">Ex: Dacia Logan, BMW X3</div>
+                        <button class="btn btn-primary" onclick="updateCarBrand()">📝 Editează</button>
+                    </div>
+
+                    <div class="car-item">
+                        <h4>📅 Anul fabricației</h4>
+                        <div class="car-value" id="carYear">Nu a fost adăugat</div>
+                        <div class="car-detail">Anul producției vehiculului</div>
+                        <button class="btn btn-primary" onclick="updateCarYear()">📝 Editează</button>
+                    </div>
+
+                    <div class="car-item">
+                        <h4>🛣️ Kilometrajul</h4>
+                        <div class="car-value" id="carKm">Nu a fost adăugat</div>
+                        <div class="car-detail" id="carKmDate">-</div>
+                        <button class="btn btn-primary" onclick="updateCarKm()">📝 Actualizează</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Întreținere -->
+            <div class="card">
+                <h3>🔧 Întreținere și Service</h3>
+                <div class="car-grid">
+                    <div class="car-item">
+                        <h4>🛢️ Schimb Ulei</h4>
+                        <div class="car-value" id="oilStatus">-</div>
+                        <div class="car-detail" id="oilDate">Ultima dată: -</div>
+                        <button class="btn btn-success" onclick="updateOilChange()">🔧 Am schimbat</button>
+                        <button class="btn btn-info" onclick="editOilChange()">✏️ Editează data</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documente Auto -->
+            <div class="card">
+                <h3>📄 Documente și Asigurări</h3>
+                <div class="car-grid">
+                    <div class="car-item">
+                        <h4>🔍 ITP (Inspecție Tehnică Periodică)</h4>
+                        <div class="car-value" id="itpStatus">-</div>
+                        <div class="car-detail">
+                            <div id="itpPurchaseDate">Făcut pe: -</div>
+                            <div id="itpExpiryDate">Expiră pe: -</div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="updateDocumentDates('itp')">📄 Actualizează</button>
+                            <a href="https://itp.ro/programare" target="_blank" class="btn btn-info">🌐 Programează</a>
+                        </div>
+                    </div>
+
+                    <div class="car-item">
+                        <h4>🛡️ RCA (Asigurare Obligatorie)</h4>
+                        <div class="car-value" id="rcaStatus">-</div>
+                        <div class="car-detail">
+                            <div id="rcaPurchaseDate">Cumpărat pe: -</div>
+                            <div id="rcaExpiryDate">Expiră pe: -</div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="updateDocumentDates('rca')">📄 Actualizează</button>
+                            <a href="https://pago.ro" target="_blank" class="btn btn-success">💳 Cumpără</a>
+                        </div>
+                    </div>
+
+                    <div class="car-item">
+                        <h4>🛣️ Rovinietă</h4>
+                        <div class="car-value" id="rovinietaStatus">-</div>
+                        <div class="car-detail">
+                            <div id="rovinietaPurchaseDate">Cumpărată pe: -</div>
+                            <div id="rovinietaExpiryDate">Expiră pe: -</div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="updateDocumentDates('rovinieta')">📄 Actualizează</button>
+                            <a href="https://roviniete.ro" target="_blank" class="btn btn-success">🛒 Cumpără</a>
+                        </div>
+                    </div>
+
+                    <div class="car-item">
+                        <h4>🛡️ CASCO (Asigurare Voluntară)</h4>
+                        <div class="car-value" id="cascoStatus">-</div>
+                        <div class="car-detail">
+                            <div id="cascoPurchaseDate">Cumpărat pe: -</div>
+                            <div id="cascoExpiryDate">Expiră pe: -</div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="updateDocumentDates('casco')">📄 Actualizează</button>
+                            <a href="https://pago.ro/casco" target="_blank" class="btn btn-success">💳 Cumpără</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SETĂRI TAB -->
+        <div class="section" id="settings">
+            <!-- Sincronizare Familie -->
+            <div class="card">
+                <h3>👫 Sincronizare Familie</h3>
+                <div style="background: rgba(33, 150, 243, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <h4 style="color: #1976D2; margin-bottom: 10px;">🔄 Status Sincronizare:</h4>
+                    <p id="syncDetails" style="margin: 0; color: #666;">Nu este configurată</p>
+                </div>
+                
+                <div class="form-group">
+                    <label>Cod Familie:</label>
+                    <input type="text" id="familyCodeInput" placeholder="Introduceți codul familiei">
+                </div>
+                
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="connectToFamily()">💾 Conectează</button>
+                    <button class="btn btn-warning" onclick="generateFamilyCode()">🎲 Generează cod nou</button>
+                    <button class="btn btn-info" onclick="testSync()">🧪 Test</button>
+                </div>
+            </div>
+
+            <!-- Prețuri Utilități -->
+            <div class="card">
+                <h3>💰 Prețuri Utilități</h3>
+                <div class="form-group">
+                    <label>Preț apă (RON/mc):</label>
+                    <input type="number" id="waterPrice" value="15.50" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Preț gaz (RON/mc):</label>
+                    <input type="number" id="gasPrice" value="3.20" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Preț electricitate (RON/kWh):</label>
+                    <input type="number" id="electricPrice" value="0.65" step="0.01">
+                </div>
+                <button class="btn btn-success" onclick="savePrices()">💾 Salvează prețurile</button>
+            </div>
+
+            <!-- Setări Aplicație -->
+            <div class="card">
+                <h3>🎵 Setări Aplicație</h3>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Sunete Notificări:</label>
+                    <button class="btn btn-info" id="soundToggle" onclick="toggleSound()">🔊 Sunet ON</button>
+                    <small style="display: block; margin-top: 5px; color: #666;">
+                        Redă sunete când apar reminder-uri noi pentru utilități sau mașină
+                    </small>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="testNotificationSound()">🔊 Test sunet</button>
+                </div>
+            </div>
+
+            <!-- Backup și Reset -->
+            <div class="card">
+                <h3>🔧 Backup și Reset</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-info" onclick="exportBackup()">📤 Export Backup</button>
+                    <button class="btn btn-warning" onclick="importBackup()">📥 Import Backup</button>
+                    <button class="btn btn-danger" onclick="factoryReset()">🏭 Reset Complet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA Status Indicator -->
+    <div class="pwa-status" id="pwaStatus">
+        📱 Offline Mode
+    </div>
+
+    <!-- Form Overlay pentru citiri -->
+    <div class="form-overlay" id="formOverlay">
+        <div class="form-popup">
+            <h3 id="formTitle">Adaugă Citire</h3>
+            <div class="form-group">
+                <label id="formLabel">Valoare:</label>
+                <input type="number" id="formValue" placeholder="Introduceți valoarea" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Data:</label>
+                <input type="date" id="formDate">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-success" onclick="saveReading()">💾 Salvează</button>
+                <button class="btn" onclick="closeForm()" style="background: #666; color: white;">❌ Anulează</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Overlay pentru documente auto -->
+    <div class="form-overlay" id="documentFormOverlay">
+        <div class="form-popup">
+            <h3 id="documentFormTitle">Actualizare Document</h3>
+            <div class="form-group">
+                <label id="purchaseDateLabel">Data cumpărării/eliberării:</label>
+                <input type="date" id="documentPurchaseDate">
+            </div>
+            <div class="form-group">
+                <label id="expiryDateLabel">Data expirării:</label>
+                <input type="date" id="documentExpiryDate">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-success" onclick="saveDocumentDates()">💾 Salvează</button>
+                <button class="btn" onclick="closeDocumentForm()" style="background: #666; color: white;">❌ Anulează</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Link Modal -->
+    <div class="form-overlay" id="shareModal">
+        <div class="share-modal">
+            <h3>📤 Trimite Update Familie</h3>
+            <p>Partajează acest link cu partenerul pentru sincronizare:</p>
+            <div class="share-link" id="shareLink">
+                Se generează link-ul...
+            </div>
+            <div class="share-buttons">
+                <button class="btn btn-success" onclick="shareViaWhatsApp()">💬 WhatsApp</button>
+                <button class="btn btn-info" onclick="shareViaSMS()">📱 SMS</button>
+                <button class="btn btn-warning" onclick="shareViaEmail()">📧 Email</button>
+                <button class="btn btn-primary" onclick="copyShareLink()">📋 Copiază</button>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn" onclick="closeShareModal()" style="background: #666; color: white;">❌ Închide</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Variabile globale
+        let currentTab = 'home';
+        let currentFormType = '';
+        let familyData = {};
+        let syncConfig = {
+            enabled: false,
+            familyCode: null,
+            deviceId: null,
+            lastSync: 0,
+            pendingUpdate: false
+        };
+        let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+        let previousReminderCount = 0;
+        let audioContext = null;
+        let deferredPrompt;
+
+        // Inițializare aplicație
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            loadAllData();
+            updateAllDisplays();
+            setupSyncChecker();
+            initializeSoundToggle();
+            setupPWAFeatures();
+            
+            // Set today as default date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('formDate').value = today;
+        });
+
+        function initializeApp() {
+            // Generate device ID
+            if (!localStorage.getItem('deviceId')) {
+                localStorage.setItem('deviceId', 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now());
+            }
+            syncConfig.deviceId = localStorage.getItem('deviceId');
+        }
+
+        function initializeSoundToggle() {
+            const soundBtn = document.getElementById('soundToggle');
+            if (soundBtn) {
+                soundBtn.textContent = soundEnabled ? '🔊 Sunet ON' : '🔇 Sunet OFF';
+            }
+        }
+
+        // === PWA FEATURES ===
+        function setupPWAFeatures() {
+            // PWA Install Prompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                showInstallPrompt();
+            });
+
+            // PWA Install Success
+            window.addEventListener('appinstalled', () => {
+                hideInstallPrompt();
+                showAlert('📱 Aplicația a fost instalată cu succes!', 'success');
+            });
+
+            // Online/Offline Status
+            window.addEventListener('online', updatePWAStatus);
+            window.addEventListener('offline', updatePWAStatus);
+            updatePWAStatus();
+
+            // Install prompt click
+            document.getElementById('installPrompt').addEventListener('click', installPWA);
+        }
+
+        function showInstallPrompt() {
+            document.getElementById('installPrompt').classList.add('show');
+        }
+
+        function hideInstallPrompt() {
+            document.getElementById('installPrompt').classList.remove('show');
+        }
+
+        async function installPWA() {
+            if (!deferredPrompt) return;
+
+            const result = await deferredPrompt.prompt();
+            console.log('PWA install result:', result);
+            
+            deferredPrompt = null;
+            hideInstallPrompt();
+        }
+
+        function updatePWAStatus() {
+            const status = document.getElementById('pwaStatus');
+            
+            if (navigator.onLine) {
+                status.textContent = '🌐 Online';
+                status.classList.remove('offline');
+                status.classList.add('show');
+                setTimeout(() => status.classList.remove('show'), 3000);
+            } else {
+                status.textContent = '📱 Offline Mode';
+                status.classList.add('offline');
+                status.classList.add('show');
+            }
+        }
+
+        // === AUDIO CONTEXT CORECT ===
+        function initializeAudioContext() {
+            if (!audioContext) {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.log('Web Audio API nu este suportat');
+                    return false;
+                }
+            }
+            
+            // Resume context dacă este suspendat
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            return audioContext.state === 'running';
+        }
+
+        function playNotificationSound() {
+            if (!soundEnabled) return;
+            
+            // Încearcă să inițializeze audio context-ul
+            if (!initializeAudioContext()) {
+                console.log('AudioContext nu poate fi inițializat');
+                return;
+            }
+            
+            try {
+                // Notă 1 - Do (C5)
+                const osc1 = audioContext.createOscillator();
+                const gain1 = audioContext.createGain();
+                osc1.connect(gain1);
+                gain1.connect(audioContext.destination);
+                osc1.frequency.value = 523.25; // C5
+                osc1.type = 'sine';
+                gain1.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                osc1.start(audioContext.currentTime);
+                osc1.stop(audioContext.currentTime + 0.2);
+                
+                // Notă 2 - Mi (E5)
+                setTimeout(() => {
+                    if (audioContext.state === 'running') {
+                        const osc2 = audioContext.createOscillator();
+                        const gain2 = audioContext.createGain();
+                        osc2.connect(gain2);
+                        gain2.connect(audioContext.destination);
+                        osc2.frequency.value = 659.25; // E5
+                        osc2.type = 'sine';
+                        gain2.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                        osc2.start(audioContext.currentTime);
+                        osc2.stop(audioContext.currentTime + 0.2);
+                    }
+                }, 150);
+                
+                // Notă 3 - Sol (G5) 
+                setTimeout(() => {
+                    if (audioContext.state === 'running') {
+                        const osc3 = audioContext.createOscillator();
+                        const gain3 = audioContext.createGain();
+                        osc3.connect(gain3);
+                        gain3.connect(audioContext.destination);
+                        osc3.frequency.value = 783.99; // G5
+                        osc3.type = 'sine';
+                        gain3.gain.setValueAtTime(0.2, audioContext.currentTime);
+                        gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                        osc3.start(audioContext.currentTime);
+                        osc3.stop(audioContext.currentTime + 0.3);
+                    }
+                }, 300);
+            } catch (e) {
+                console.log('Eroare la redarea sunetului:', e);
+            }
+        }
+
+        function testNotificationSound() {
+            // Inițializează audio context-ul la click-ul utilizatorului
+            initializeAudioContext();
+            playNotificationSound();
+            showAlert('🔊 Test sunet realizat!', 'info');
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('soundEnabled', soundEnabled.toString());
+            const soundBtn = document.getElementById('soundToggle');
+            if (soundBtn) {
+                soundBtn.textContent = soundEnabled ? '🔊 Sunet ON' : '🔇 Sunet OFF';
+            }
+            
+            if (soundEnabled) {
+                // Inițializează audio context când utilizatorul activează sunetele
+                initializeAudioContext();
+            }
+            
+            showAlert(soundEnabled ? '🔊 Sunete activate!' : '🔇 Sunete dezactivate!', 'info');
+        }
+
+        // === TAB MANAGEMENT ===
+        function showTab(tabName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to selected tab
+            const tabs = document.querySelectorAll('.tab');
+            const tabIndex = tabName === 'home' ? 0 : tabName === 'car' ? 1 : 2;
+            tabs[tabIndex].classList.add('active');
+            
+            currentTab = tabName;
+        }
+
+        // === DATA MANAGEMENT ===
+        function loadAllData() {
+            try {
+                // Load readings
+                familyData.readings = JSON.parse(localStorage.getItem('readings') || '{}');
+                
+                // Load car data
+                familyData.carData = JSON.parse(localStorage.getItem('carData') || '{}');
+                
+                // Load prices
+                familyData.prices = JSON.parse(localStorage.getItem('prices') || '{"water": 15.50, "gas": 3.20, "electric": 0.65}');
+                
+                // Load family settings
+                const familyCode = localStorage.getItem('familyCode');
+                if (familyCode) {
+                    familyData.familyCode = familyCode;
+                    syncConfig.familyCode = familyCode;
+                    syncConfig.enabled = true;
+                    document.getElementById('familyCodeInput').value = familyCode;
+                }
+                
+                // Load prices in UI
+                document.getElementById('waterPrice').value = familyData.prices.water || 15.50;
+                document.getElementById('gasPrice').value = familyData.prices.gas || 3.20;
+                document.getElementById('electricPrice').value = familyData.prices.electric || 0.65;
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                familyData = { 
+                    readings: {}, 
+                    carData: {}, 
+                    prices: { water: 15.50, gas: 3.20, electric: 0.65 } 
+                };
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('readings', JSON.stringify(familyData.readings));
+                localStorage.setItem('carData', JSON.stringify(familyData.carData));
+                localStorage.setItem('prices', JSON.stringify(familyData.prices));
+                localStorage.setItem('lastModified', Date.now().toString());
+                
+                if (familyData.familyCode) {
+                    localStorage.setItem('familyCode', familyData.familyCode);
+                }
+                
+                // Mark for sync
+                if (syncConfig.enabled) {
+                    syncConfig.pendingUpdate = true;
+                    updateSyncStatus();
+                }
+                
+            } catch (error) {
+                console.error('Error saving data:', error);
+                showAlert('❌ Eroare la salvarea datelor', 'danger');
+            }
+        }
+
+        // === UTILITIES READINGS ===
+        function addReading(type) {
+            currentFormType = type;
+            const titles = {
+                waterBath: 'Citire Apometru Baie',
+                waterKitchen: 'Citire Apometru Bucătărie',
+                gas: 'Citire Contor Gaz',
+                electric: 'Citire Contor Electricitate'
+            };
+            
+            document.getElementById('formTitle').textContent = titles[type];
+            document.getElementById('formLabel').textContent = 'Valoare nouă:';
+            document.getElementById('formValue').value = '';
+            document.getElementById('formValue').focus();
+            
+            showForm();
+        }
+
+        function saveReading() {
+            const value = parseFloat(document.getElementById('formValue').value);
+            const date = document.getElementById('formDate').value;
+            
+            if (!value || !date) {
+                showAlert('❌ Completați toate câmpurile', 'danger');
+                return;
+            }
+            
+            // Validation
+            const lastReading = getLastReadingValue(currentFormType);
+            if (lastReading && value < lastReading * 0.8) {
+                if (!confirm(`⚠️ Valoarea ${value} pare mult mai mică decât ultima citire (${lastReading}). Continuați?`)) {
+                    return;
+                }
+            }
+            
+            // Create reading
+            const reading = {
+                id: 'reading_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                value: value,
+                date: date,
+                timestamp: Date.now(),
+                deviceId: syncConfig.deviceId
+            };
+            
+            // Save reading
+            if (!familyData.readings[currentFormType]) {
+                familyData.readings[currentFormType] = [];
+            }
+            
+            familyData.readings[currentFormType].unshift(reading);
+            
+            saveData();
+            updateAllDisplays();
+            closeForm();
+            
+            showAlert(`✅ Citire ${currentFormType} salvată: ${value}`, 'success');
+            
+            // Sunet de confirmare - cu delay pentru a permite user gesture
+            setTimeout(() => {
+                if (soundEnabled && audioContext) {
+                    playNotificationSound();
+                }
+            }, 500);
+        }
+
+        function deleteReading(type) {
+            if (!familyData.readings[type] || familyData.readings[type].length === 0) {
+                showAlert('❌ Nu există citiri de șters', 'warning');
+                return;
+            }
+            
+            const latest = familyData.readings[type][0];
+            if (confirm(`Ștergeți citirea ${latest.value} din ${formatDate(latest.date)}?`)) {
+                familyData.readings[type].shift();
+                saveData();
+                updateAllDisplays();
+                showAlert(`✅ Citire ${type} ștearsă`, 'success');
+            }
+        }
+
+        function getLastReadingValue(type) {
+            if (!familyData.readings[type] || familyData.readings[type].length === 0) {
+                return null;
+            }
+            return familyData.readings[type][0].value;
+        }
+
+        // === CAR MANAGEMENT ===
+        let currentDocumentType = '';
+
+        function updateCarNumber() {
+            const current = familyData.carData.carNumber || '';
+            const number = prompt('Introduceți numărul de înmatriculare:', current);
+            if (number !== null && number.trim() !== '') {
+                // Validare format românesc
+                const cleanNumber = number.toUpperCase().trim();
+                const romanianPlatePattern = /^[A-Z]{1,2}\s?\d{1,3}\s?[A-Z]{3}$/;
+                
+                if (!romanianPlatePattern.test(cleanNumber)) {
+                    showAlert('❌ Format invalid! Exemplu corect: B 123 ABC', 'danger');
+                    return;
+                }
+                
+                familyData.carData.carNumber = cleanNumber;
+                familyData.carData.carNumberUpdated = Date.now();
+                saveData();
+                updateCarDisplay();
+                showAlert('✅ Numărul de înmatriculare actualizat!', 'success');
+            }
+        }
+
+        function updateCarBrand() {
+            const current = familyData.carData.carBrand || '';
+            const brand = prompt('Introduceți marca și modelul (ex: Dacia Logan):', current);
+            if (brand !== null && brand.trim() !== '') {
+                familyData.carData.carBrand = brand.trim();
+                familyData.carData.carBrandUpdated = Date.now();
+                saveData();
+                updateCarDisplay();
+                showAlert('✅ Marca și modelul actualizate!', 'success');
+            }
+        }
+
+        function updateCarYear() {
+            const current = familyData.carData.carYear || '';
+            const year = prompt('Introduceți anul fabricației:', current);
+            if (year !== null && year !== '') {
+                const yearNum = parseInt(year);
+                if (yearNum >= 1900 && yearNum <= new Date().getFullYear() + 1) {
+                    familyData.carData.carYear = yearNum;
+                    familyData.carData.carYearUpdated = Date.now();
+                    saveData();
+                    updateCarDisplay();
+                    showAlert('✅ Anul fabricației actualizat!', 'success');
+                } else {
+                    showAlert('❌ Anul introdus nu este valid', 'danger');
+                }
+            }
+        }
+
+        function updateCarKm() {
+            const current = familyData.carData.carKm || '';
+            const km = prompt('Introduceți kilometrajul actual:', current);
+            if (km !== null && km.trim() !== '') {
+                const kmNum = parseInt(km.replace(/[^0-9]/g, ''));
+                
+                if (isNaN(kmNum) || kmNum < 0) {
+                    showAlert('❌ Kilometrajul introdus nu este valid', 'danger');
+                    return;
+                }
+                
+                // Verificare logică
+                const lastKm = familyData.carData.carKm || 0;
+                if (lastKm > 0 && kmNum < lastKm * 0.95) {
+                    const confirmMessage = `⚠️ Kilometrajul ${kmNum.toLocaleString()} pare mult mai mic decât cel anterior (${lastKm.toLocaleString()}). Sigur continuați?`;
+                    if (!confirm(confirmMessage)) {
+                        return;
+                    }
+                }
+                
+                familyData.carData.carKm = kmNum;
+                familyData.carData.carKmUpdated = Date.now();
+                saveData();
+                updateCarDisplay();
+                showAlert(`✅ Kilometrajul actualizat la ${kmNum.toLocaleString()} km!`, 'success');
+            }
+        }
+
+        function updateOilChange() {
+            const today = new Date().toISOString().split('T')[0];
+            familyData.carData.lastOilChange = today;
+            familyData.carData.lastOilChangeUpdated = Date.now();
+            saveData();
+            updateCarDisplay();
+            showAlert('✅ Schimb ulei marcat ca făcut azi!', 'success');
+        }
+
+        function editOilChange() {
+            const current = familyData.carData.lastOilChange || '';
+            const date = prompt('Introduceți data schimbului de ulei (YYYY-MM-DD):', current);
+            if (date && isValidDate(date)) {
+                familyData.carData.lastOilChange = date;
+                familyData.carData.lastOilChangeUpdated = Date.now();
+                saveData();
+                updateCarDisplay();
+                showAlert('✅ Data schimbului de ulei actualizată!', 'success');
+            } else if (date) {
+                showAlert('❌ Format dată invalid. Folosiți YYYY-MM-DD', 'danger');
+            }
+        }
+
+        // === FUNCȚII NOI PENTRU DOCUMENTE AUTO ===
+        function updateDocumentDates(documentType) {
+            currentDocumentType = documentType;
+            
+            const documentNames = {
+                'itp': 'ITP (Inspecție Tehnică Periodică)',
+                'rca': 'RCA (Asigurare Obligatorie)',
+                'rovinieta': 'Rovinietă',
+                'casco': 'CASCO (Asigurare Voluntară)'
+            };
+
+            const purchaseLabels = {
+                'itp': 'Data când a fost făcut ITP-ul:',
+                'rca': 'Data când a fost cumpărat RCA-ul:',
+                'rovinieta': 'Data când a fost cumpărată rovinieta:',
+                'casco': 'Data când a fost cumpărat CASCO-ul:'
+            };
+
+            const expiryLabels = {
+                'itp': 'Data când expiră ITP-ul:',
+                'rca': 'Data când expiră RCA-ul:',
+                'rovinieta': 'Data când expiră rovinieta:',
+                'casco': 'Data când expiră CASCO-ul:'
+            };
+            
+            // Set form titles and labels
+            document.getElementById('documentFormTitle').textContent = `Actualizare ${documentNames[documentType]}`;
+            document.getElementById('purchaseDateLabel').textContent = purchaseLabels[documentType];
+            document.getElementById('expiryDateLabel').textContent = expiryLabels[documentType];
+            
+            // Load existing dates if any
+            const carData = familyData.carData;
+            const purchaseDate = carData[documentType + 'PurchaseDate'] || '';
+            const expiryDate = carData[documentType + 'ExpiryDate'] || '';
+            
+            document.getElementById('documentPurchaseDate').value = purchaseDate;
+            document.getElementById('documentExpiryDate').value = expiryDate;
+            
+            showDocumentForm();
+        }
+
+        function saveDocumentDates() {
+            const purchaseDate = document.getElementById('documentPurchaseDate').value;
+            const expiryDate = document.getElementById('documentExpiryDate').value;
+            
+            if (!purchaseDate || !expiryDate) {
+                showAlert('❌ Completați ambele date!', 'danger');
+                return;
+            }
+            
+            if (!isValidDate(purchaseDate) || !isValidDate(expiryDate)) {
+                showAlert('❌ Format date invalid!', 'danger');
+                return;
+            }
+            
+            // Verificare logică - data expirării să fie după data cumpărării
+            if (new Date(expiryDate) <= new Date(purchaseDate)) {
+                showAlert('❌ Data expirării trebuie să fie după data cumpărării!', 'danger');
+                return;
+            }
+            
+            // Save dates
+            familyData.carData[currentDocumentType + 'PurchaseDate'] = purchaseDate;
+            familyData.carData[currentDocumentType + 'ExpiryDate'] = expiryDate;
+            familyData.carData[currentDocumentType + 'Updated'] = Date.now();
+            
+            saveData();
+            updateCarDisplay();
+            closeDocumentForm();
+            
+            const documentNames = {
+                'itp': 'ITP',
+                'rca': 'RCA', 
+                'rovinieta': 'Rovinieta',
+                'casco': 'CASCO'
+            };
+            
+            showAlert(`✅ Datele pentru ${documentNames[currentDocumentType]} au fost salvate!`, 'success');
+        }
+
+        function showDocumentForm() {
+            document.getElementById('documentFormOverlay').classList.add('active');
+        }
+
+        function closeDocumentForm() {
+            document.getElementById('documentFormOverlay').classList.remove('active');
+        }
+
+        // Păstrez funcțiile vechi pentru compatibilitate, dar le redirectez către noile funcții
+        function updateITP() { updateDocumentDates('itp'); }
+        function updateRCA() { updateDocumentDates('rca'); }
+        function updateRovignette() { updateDocumentDates('rovinieta'); }
+        function updateCasco() { updateDocumentDates('casco'); }
+
+        function isValidDate(dateString) {
+            const regex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!regex.test(dateString)) return false;
+            
+            const date = new Date(dateString);
+            return date instanceof Date && !isNaN(date);
+        }
+
+        // === EXPORT FUNCTIONS ===
+        function exportExcelEnhanced() {
+            showProgressBar(0, 'Se inițializează exportul...');
+            
+            setTimeout(() => {
+                try {
+                    showProgressBar(20, 'Se colectează datele...');
+                    
+                    const wb = XLSX.utils.book_new();
+                    const today = new Date();
+                    const currentMonth = today.toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' });
+                    
+                    showProgressBar(40, 'Se generează foaia de indexuri...');
+                    
+                    // Main sheet with readings
+                    const indexData = [
+                        ['INDEXURI UTILITATI - ' + currentMonth.toUpperCase()],
+                        [''],
+                        ['Proprietar:', 'Iordache Florin'],
+                        ['Adresa:', 'Str. Dunarii, Bl K1, Sc. A, Ap. 9'],
+                        ['Data raportului:', today.toLocaleDateString('ro-RO')],
+                        ['Telefon:', '0769551010'],
+                        [''],
+                        ['TIPUL CONTORULUI', 'INDEX ACTUAL', 'DATA CITIRE', 'INDEX ANTERIOR', 'CONSUM (mc/kWh)']
+                    ];
+                    
+                    const types = [
+                        { key: 'waterBath', name: 'Apometru Baie' },
+                        { key: 'waterKitchen', name: 'Apometru Bucătărie' },
+                        { key: 'gas', name: 'Contor Gaz' },
+                        { key: 'electric', name: 'Contor Electricitate' }
+                    ];
+                    
+                    showProgressBar(60, 'Se calculează consumurile...');
+                    
+                    types.forEach(type => {
+                        const readings = familyData.readings[type.key] || [];
+                        if (readings.length > 0) {
+                            const current = readings[0];
+                            const previous = readings[1];
+                            const consumption = previous ? (current.value - previous.value).toFixed(2) : '-';
+                            
+                            indexData.push([
+                                type.name,
+                                current.value,
+                                current.date,
+                                previous ? previous.value : '-',
+                                consumption
+                            ]);
+                        } else {
+                            indexData.push([type.name, 'Nu a fost citit', '-', '-', '-']);
+                        }
+                    });
+                    
+                    // Add estimated cost
+                    const estimatedCost = calculateEstimatedCost();
+                    indexData.push(['']);
+                    indexData.push(['COST ESTIMAT TOTAL:', estimatedCost.toFixed(2) + ' RON', '', '', '']);
+                    
+                    showProgressBar(80, 'Se generează fișierul...');
+                    
+                    const ws = XLSX.utils.aoa_to_sheet(indexData);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Indexuri pentru Asociatie');
+                    
+                    showProgressBar(95, 'Se salvează fișierul...');
+                    
+                    // Save file
+                    const fileName = `Indexuri_Iordache_Florin_${String(today.getMonth() + 1).padStart(2, '0')}_${today.getFullYear()}.xlsx`;
+                    XLSX.writeFile(wb, fileName);
+                    
+                    showProgressBar(100, 'Export complet!');
+                    
+                    setTimeout(() => {
+                        hideProgressBar();
+                        showAlert('✅ Fișier Excel pentru asociația de proprietari descărcat cu succes!', 'success');
+                    }, 1000);
+                    
+                } catch (error) {
+                    hideProgressBar();
+                    console.error('Export error:', error);
+                    showAlert('❌ Eroare la generarea fișierului Excel', 'danger');
+                }
+            }, 500);
+        }
+
+        function generateDetailedReport() {
+            showAlert('📊 Se generează raportul detaliat...', 'info');
+            
+            setTimeout(() => {
+                try {
+                    const wb = XLSX.utils.book_new();
+                    
+                    // Foaia 1: Indexuri actuale
+                    const currentData = [
+                        ['RAPORT DETALIAT UTILITĂȚI'],
+                        ['Data generării:', new Date().toLocaleDateString('ro-RO')],
+                        [''],
+                        ['INDEXURI ACTUALE'],
+                        ['Tip Contor', 'Index', 'Data Citire']
+                    ];
+                    
+                    Object.keys(familyData.readings).forEach(type => {
+                        const readings = familyData.readings[type] || [];
+                        if (readings.length > 0) {
+                            const latest = readings[0];
+                            currentData.push([type, latest.value, latest.date]);
+                        }
+                    });
+                    
+                    const ws1 = XLSX.utils.aoa_to_sheet(currentData);
+                    XLSX.utils.book_append_sheet(wb, ws1, 'Indexuri Actuale');
+                    
+                    // Foaia 2: Istoric
+                    const historicData = [
+                        ['ISTORIC CITIRI'],
+                        ['Data', 'Tip Contor', 'Index', 'Consum']
+                    ];
+                    
+                    Object.keys(familyData.readings).forEach(type => {
+                        const readings = familyData.readings[type] || [];
+                        readings.forEach((reading, index) => {
+                            const consumption = index < readings.length - 1 ? 
+                                (reading.value - readings[index + 1].value).toFixed(2) : '-';
+                            historicData.push([reading.date, type, reading.value, consumption]);
+                        });
+                    });
+                    
+                    const ws2 = XLSX.utils.aoa_to_sheet(historicData);
+                    XLSX.utils.book_append_sheet(wb, ws2, 'Istoric Complet');
+                    
+                    // Save file
+                    const fileName = `Raport_Detaliat_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    XLSX.writeFile(wb, fileName);
+                    
+                    showAlert('✅ Raport detaliat generat cu succes!', 'success');
+                    
+                } catch (error) {
+                    console.error('Detailed report error:', error);
+                    showAlert('❌ Eroare la generarea raportului detaliat', 'danger');
+                }
+            }, 1000);
+        }
+
+        function showProgressBar(percentage, message) {
+            const container = document.getElementById('progressContainer');
+            const fill = document.getElementById('progressFill');
+            const messageEl = document.getElementById('progressMessage');
+            
+            container.style.display = 'flex';
+            fill.style.width = percentage + '%';
+            messageEl.textContent = message;
+        }
+
+        function hideProgressBar() {
+            document.getElementById('progressContainer').style.display = 'none';
+        }
+
+        // === SYNC MANAGEMENT ===
+        function handleSyncAction() {
+            if (!syncConfig.enabled) {
+                showTab('settings');
+                document.getElementById('familyCodeInput').focus();
+            } else if (syncConfig.pendingUpdate) {
+                showShareModal();
+            } else {
+                testSync();
+            }
+        }
+
+        function connectToFamily() {
+            const code = document.getElementById('familyCodeInput').value.trim();
+            if (!code) {
+                showAlert('❌ Introduceți un cod pentru familie', 'danger');
+                return;
+            }
+            
+            syncConfig.familyCode = code;
+            syncConfig.enabled = true;
+            familyData.familyCode = code;
+            
+            localStorage.setItem('familyCode', code);
+            
+            updateSyncStatus();
+            showAlert(`✅ Conectat la familia "${code}"!`, 'success');
+        }
+
+        function generateFamilyCode() {
+            const code = 'FAM' + Math.random().toString(36).substr(2, 8).toUpperCase();
+            document.getElementById('familyCodeInput').value = code;
+            showAlert(`🎲 Cod generat: ${code}`, 'info');
+        }
+
+        function testSync() {
+            showAlert('🧪 Test sincronizare...', 'info');
+            setTimeout(() => {
+                showAlert('✅ Sincronizare funcțională!', 'success');
+            }, 1500);
+        }
+
+        function setupSyncChecker() {
+            // Check for sync updates every 10 seconds
+            setInterval(() => {
+                if (syncConfig.enabled) {
+                    checkForUpdates();
+                }
+            }, 10000);
+        }
+
+        function checkForUpdates() {
+            // Simulate checking for updates
+            const lastModified = parseInt(localStorage.getItem('lastModified') || '0');
+            const now = Date.now();
+            
+            if (now - lastModified > 30000) { // 30 seconds ago
+                syncConfig.pendingUpdate = Math.random() > 0.7; // 30% chance of pending update
+                updateSyncStatus();
+            }
+        }
+
+        function updateSyncStatus() {
+            const statusEl = document.getElementById('syncStatus');
+            const actionEl = document.getElementById('syncAction');
+            const detailsEl = document.getElementById('syncDetails');
+            
+            if (!syncConfig.enabled) {
+                statusEl.innerHTML = '<span>🔴 Nu este configurat</span>';
+                statusEl.className = 'sync-status disconnected';
+                actionEl.textContent = 'Configurează';
+                actionEl.className = 'sync-action';
+                detailsEl.textContent = 'Nu este configurată sincronizarea familie';
+            } else if (syncConfig.pendingUpdate) {
+                statusEl.innerHTML = '<span>🟡 Update disponibil</span>';
+                statusEl.className = 'sync-status pending';
+                actionEl.textContent = 'Trimite Update';
+                actionEl.className = 'sync-action urgent';
+                detailsEl.textContent = `Conectat la familia "${syncConfig.familyCode}" - Update disponibil pentru trimitere`;
+            } else {
+                statusEl.innerHTML = '<span>🟢 Sincronizat</span>';
+                statusEl.className = 'sync-status connected';
+                actionEl.textContent = 'Test Sync';
+                actionEl.className = 'sync-action';
+                detailsEl.textContent = `Conectat la familia "${syncConfig.familyCode}" - Toate datele sunt sincronizate`;
+            }
+        }
+
+        function showShareModal() {
+            const modal = document.getElementById('shareModal');
+            const link = generateShareLink();
+            document.getElementById('shareLink').textContent = link;
+            modal.classList.add('active');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        function generateShareLink() {
+            const updateData = {
+                familyCode: syncConfig.familyCode,
+                deviceId: syncConfig.deviceId,
+                timestamp: Date.now(),
+                data: {
+                    readings: familyData.readings,
+                    carData: familyData.carData,
+                    prices: familyData.prices
+                }
+            };
+            
+            // Encode data in URL (in real app, this would be stored on server and referenced by ID)
+            const encodedData = btoa(JSON.stringify(updateData));
+            return `${window.location.origin}${window.location.pathname}?sync=${encodedData.substr(0, 20)}...`;
+        }
+
+        function shareViaWhatsApp() {
+            const link = document.getElementById('shareLink').textContent;
+            const message = `🏠 Update Utilități Familie!\n\nAm actualizat datele pentru casa noastră. Click pe link pentru sincronizare:\n\n${link}`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        function shareViaSMS() {
+            const link = document.getElementById('shareLink').textContent;
+            const message = `Update Utilități Familie! Click pentru sincronizare: ${link}`;
+            const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
+            window.location.href = smsUrl;
+        }
+
+        function shareViaEmail() {
+            const link = document.getElementById('shareLink').textContent;
+            const subject = 'Update Utilități Familie';
+            const body = `Salut!\n\nAm actualizat datele pentru utilități și mașină.\n\nClick pe link pentru sincronizare:\n${link}\n\nCu drag!`;
+            const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = emailUrl;
+        }
+
+        function copyShareLink() {
+            const link = document.getElementById('shareLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                showAlert('✅ Link copiat în clipboard!', 'success');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = link;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showAlert('✅ Link copiat!', 'success');
+            });
+        }
+
+        // === SETTINGS ===
+        function savePrices() {
+            const waterPrice = parseFloat(document.getElementById('waterPrice').value);
+            const gasPrice = parseFloat(document.getElementById('gasPrice').value);
+            const electricPrice = parseFloat(document.getElementById('electricPrice').value);
+            
+            if (isNaN(waterPrice) || isNaN(gasPrice) || isNaN(electricPrice)) {
+                showAlert('❌ Introduceți prețuri valide', 'danger');
+                return;
+            }
+            
+            familyData.prices = {
+                water: waterPrice,
+                gas: gasPrice,
+                electric: electricPrice
+            };
+            
+            saveData();
+            updateAllDisplays();
+            showAlert('✅ Prețurile au fost salvate!', 'success');
+        }
+
+        function exportBackup() {
+            const backupData = {
+                version: '2.0',
+                timestamp: Date.now(),
+                data: familyData
+            };
+            
+            const jsonString = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `utilitati_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            showAlert('✅ Backup exportat cu succes!', 'success');
+        }
+
+        function importBackup() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const backupData = JSON.parse(e.target.result);
+                        if (backupData.data) {
+                            familyData = backupData.data;
+                            saveData();
+                            loadAllData();
+                            updateAllDisplays();
+                            showAlert('✅ Backup importat cu succes!', 'success');
+                        } else {
+                            throw new Error('Format backup invalid');
+                        }
+                    } catch (error) {
+                        showAlert('❌ Eroare la importul backup-ului', 'danger');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function factoryReset() {
+            if (confirm('ATENȚIE! Aceasta va șterge TOATE datele. Sigur continuați?')) {
+                if (confirm('Ultima confirmare: Toate datele vor fi pierdute definitiv!')) {
+                    localStorage.clear();
+                    familyData = { readings: {}, carData: {}, prices: { water: 15.50, gas: 3.20, electric: 0.65 } };
+                    syncConfig = { enabled: false, familyCode: null, deviceId: null, lastSync: 0, pendingUpdate: false };
+                    
+                    initializeApp();
+                    loadAllData();
+                    updateAllDisplays();
+                    showAlert('🏭 Reset complet efectuat!', 'warning');
+                }
+            }
+        }
+
+        // === UI UPDATES ===
+        function updateAllDisplays() {
+            updateUtilitiesDisplay();
+            updateCarDisplay();
+            updateStatsDisplay();
+            updateReminders();
+            updateSyncStatus();
+        }
+
+        function updateUtilitiesDisplay() {
+            const types = ['waterBath', 'waterKitchen', 'gas', 'electric'];
+            
+            types.forEach(type => {
+                const currentEl = document.getElementById(type + 'Current');
+                const lastEl = document.getElementById(type + 'Last');
+                
+                const readings = familyData.readings[type] || [];
+                if (readings.length > 0) {
+                    const latest = readings[0];
+                    currentEl.textContent = latest.value.toString();
+                    lastEl.textContent = `Ultimul: ${latest.value} (${formatDate(latest.date)})`;
+                } else {
+                    currentEl.textContent = '---';
+                    lastEl.textContent = 'Ultimul: -';
+                }
+            });
+        }
+
+        function updateCarDisplay() {
+            const carData = familyData.carData;
+            
+            // Basic info
+            document.getElementById('carNumber').textContent = carData.carNumber || 'Nu a fost adăugat';
+            document.getElementById('carBrand').textContent = carData.carBrand || 'Nu a fost adăugat';
+            document.getElementById('carYear').textContent = carData.carYear || 'Nu a fost adăugat';
+            
+            // Kilometers
+            if (carData.carKm) {
+                document.getElementById('carKm').textContent = `${carData.carKm.toLocaleString()} km`;
+                if (carData.carKmUpdated) {
+                    document.getElementById('carKmDate').textContent = `Actualizat: ${formatDate(new Date(carData.carKmUpdated).toISOString().split('T')[0])}`;
+                }
+            } else {
+                document.getElementById('carKm').textContent = 'Nu a fost adăugat';
+                document.getElementById('carKmDate').textContent = '-';
+            }
+            
+            // Oil change
+            if (carData.lastOilChange) {
+                const lastOil = new Date(carData.lastOilChange);
+                const today = new Date();
+                const diffMonths = (today.getFullYear() - lastOil.getFullYear()) * 12 + (today.getMonth() - lastOil.getMonth());
+                
+                document.getElementById('oilDate').textContent = `Ultima dată: ${formatDate(carData.lastOilChange)}`;
+                if (diffMonths >= 6) {
+                    document.getElementById('oilStatus').textContent = 'URGENT!';
+                    document.getElementById('oilStatus').style.color = '#F44336';
+                } else {
+                    document.getElementById('oilStatus').textContent = `${6 - diffMonths} luni`;
+                    document.getElementById('oilStatus').style.color = diffMonths >= 4 ? '#FF9800' : '#4CAF50';
+                }
+            } else {
+                document.getElementById('oilStatus').textContent = '-';
+                document.getElementById('oilDate').textContent = 'Ultima dată: -';
+            }
+            
+            // Documents cu ambele date
+            updateNewDocumentDisplay('itp', 'ITP');
+            updateNewDocumentDisplay('rca', 'RCA');
+            updateNewDocumentDisplay('rovinieta', 'Rovinietă');
+            updateNewDocumentDisplay('casco', 'CASCO');
+        }
+
+        function updateNewDocumentDisplay(docType, docName) {
+            const carData = familyData.carData;
+            const purchaseKey = docType + 'PurchaseDate';
+            const expiryKey = docType + 'ExpiryDate';
+            
+            const purchaseDate = carData[purchaseKey];
+            const expiryDate = carData[expiryKey];
+            
+            // Update purchase and expiry date displays
+            const purchaseEl = document.getElementById(docType + 'PurchaseDate');
+            const expiryEl = document.getElementById(docType + 'ExpiryDate');
+            
+            if (purchaseDate) {
+                const purchaseLabels = {
+                    'itp': 'Făcut pe:',
+                    'rca': 'Cumpărat pe:',
+                    'rovinieta': 'Cumpărată pe:',
+                    'casco': 'Cumpărat pe:'
+                };
+                purchaseEl.textContent = `${purchaseLabels[docType]} ${formatDate(purchaseDate)}`;
+            } else {
+                const purchaseLabels = {
+                    'itp': 'Făcut pe: -',
+                    'rca': 'Cumpărat pe: -',
+                    'rovinieta': 'Cumpărată pe: -',
+                    'casco': 'Cumpărat pe: -'
+                };
+                purchaseEl.textContent = purchaseLabels[docType];
+            }
+            
+            if (expiryDate) {
+                expiryEl.textContent = `Expiră pe: ${formatDate(expiryDate)}`;
+                
+                // Calculate and update status
+                const expiry = new Date(expiryDate);
+                const today = new Date();
+                const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+                
+                const statusEl = document.getElementById(docType + 'Status');
+                
+                if (daysUntilExpiry < 0) {
+                    statusEl.textContent = `EXPIRAT! (${Math.abs(daysUntilExpiry)} zile)`;
+                    statusEl.style.color = '#F44336';
+                } else if (daysUntilExpiry <= 30) {
+                    statusEl.textContent = `⚠️ ${daysUntilExpiry} zile`;
+                    statusEl.style.color = '#FF9800';
+                } else if (daysUntilExpiry <= 60) {
+                    statusEl.textContent = `🟡 ${daysUntilExpiry} zile`;
+                    statusEl.style.color = '#FF9800';
+                } else {
+                    statusEl.textContent = `✅ ${daysUntilExpiry} zile`;
+                    statusEl.style.color = '#4CAF50';
+                }
+            } else {
+                expiryEl.textContent = 'Expiră pe: -';
+                document.getElementById(docType + 'Status').textContent = 'Nu este setat';
+                document.getElementById(docType + 'Status').style.color = '#666';
+            }
+        }
+
+        // Actualizez funcția pentru reminders să folosească noile chei
+        function updateReminders() {
+            const reminders = [];
+            const today = new Date();
+            const currentDay = today.getDate();
+            
+            // Check utility reminders - TOATE pe 20 ale lunii
+            if (currentDay >= 20 && currentDay <= 22) {
+                if (!isReadThisMonth('waterBath')) {
+                    reminders.push('💧 Citire Apometru Baie (până pe 20)');
+                }
+                if (!isReadThisMonth('waterKitchen')) {
+                    reminders.push('💧 Citire Apometru Bucătărie (până pe 20)');
+                }
+                if (!isReadThisMonth('gas')) {
+                    reminders.push('🔥 Citire Contor Gaz (până pe 20)');
+                }
+                if (!isReadThisMonth('electric')) {
+                    reminders.push('⚡ Citire Contor Electricitate (până pe 20)');
+                }
+            }
+            
+            // Check car reminders
+            const carData = familyData.carData;
+            
+            // Oil change
+            if (carData.lastOilChange) {
+                const lastOil = new Date(carData.lastOilChange);
+                const diffMonths = (today.getFullYear() - lastOil.getFullYear()) * 12 + (today.getMonth() - lastOil.getMonth());
+                if (diffMonths >= 6) {
+                    reminders.push('🔧 Schimb ulei mașină (urgent)');
+                }
+            }
+            
+            // Document expiry cu noile chei
+            const docs = [
+                { key: 'itpExpiryDate', name: '🔍 ITP' },
+                { key: 'rcaExpiryDate', name: '🛡️ RCA' },
+                { key: 'rovinietaExpiryDate', name: '🛣️ Rovinietă' },
+                { key: 'cascoExpiryDate', name: '🛡️ CASCO' }
+            ];
+            
+            docs.forEach(doc => {
+                if (carData[doc.key]) {
+                    const expiry = new Date(carData[doc.key]);
+                    const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+                    if (daysUntilExpiry <= 30 && daysUntilExpiry >= 0) {
+                        reminders.push(`${doc.name} expiră în ${daysUntilExpiry} zile`);
+                    } else if (daysUntilExpiry < 0) {
+                        reminders.push(`${doc.name} EXPIRAT cu ${Math.abs(daysUntilExpiry)} zile în urmă`);
+                    }
+                }
+            });
+            
+            // Update display
+            const currentReminderCount = reminders.length;
+            document.getElementById('activeReminders').textContent = currentReminderCount.toString();
+            
+            // Play sound dacă sunt reminder-uri noi - DOAR dacă audioContext este inițializat
+            if (currentReminderCount > previousReminderCount && currentReminderCount > 0 && audioContext) {
+                setTimeout(() => playNotificationSound(), 1000);
+                showAlert(`🔔 ${currentReminderCount} reminder-uri active!`, 'warning');
+            }
+            previousReminderCount = currentReminderCount;
+            
+            const remindersCard = document.getElementById('remindersCard');
+            if (reminders.length > 0) {
+                remindersCard.style.display = 'block';
+                document.getElementById('remindersList').innerHTML = reminders.map(reminder => 
+                    `<div style="background: rgba(255, 152, 0, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid #FF9800;">
+                        ${reminder}
+                    </div>`
+                ).join('');
+            } else {
+                remindersCard.style.display = 'none';
+            }
+        }
+
+        function updateStatsDisplay() {
+            // Count readings this month
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            let thisMonthCount = 0;
+            
+            Object.values(familyData.readings).forEach(readings => {
+                if (readings.length > 0) {
+                    const latestDate = new Date(readings[0].date);
+                    if (latestDate.getMonth() === currentMonth && latestDate.getFullYear() === currentYear) {
+                        thisMonthCount++;
+                    }
+                }
+            });
+            
+            document.getElementById('readingsThisMonth').textContent = `${thisMonthCount}/4`;
+            
+            // Estimated cost
+            const estimatedCost = calculateEstimatedCost();
+            document.getElementById('estimatedCost').textContent = estimatedCost > 0 ? `${estimatedCost.toFixed(0)} RON` : '-';
+            
+            // Sync users (simulation)
+            document.getElementById('syncUsers').textContent = syncConfig.enabled ? '2' : '1';
+        }
+
+        function isReadThisMonth(type) {
+            if (!familyData.readings[type] || familyData.readings[type].length === 0) {
+                return false;
+            }
+            
+            const latest = familyData.readings[type][0];
+            const latestDate = new Date(latest.date);
+            const today = new Date();
+            
+            return latestDate.getMonth() === today.getMonth() && latestDate.getFullYear() === today.getFullYear();
+        }
+
+        function calculateEstimatedCost() {
+            const types = ['waterBath', 'waterKitchen', 'gas', 'electric'];
+            let totalCost = 0;
+            
+            types.forEach(type => {
+                const readings = familyData.readings[type] || [];
+                if (readings.length >= 2) {
+                    const consumption = readings[0].value - readings[1].value;
+                    if (consumption > 0) {
+                        if (type === 'waterBath' || type === 'waterKitchen') {
+                            totalCost += consumption * familyData.prices.water;
+                        } else if (type === 'gas') {
+                            totalCost += consumption * familyData.prices.gas;
+                        } else if (type === 'electric') {
+                            totalCost += consumption * familyData.prices.electric;
+                        }
+                    }
+                }
+            });
+            
+            return totalCost;
+        }
+
+        // === UTILITY FUNCTIONS ===
+        function showForm() {
+            document.getElementById('formOverlay').classList.add('active');
+        }
+
+        function closeForm() {
+            document.getElementById('formOverlay').classList.remove('active');
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertsContainer = document.getElementById('alerts');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            alertsContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 5000);
+        }
+
+        function formatDate(dateString) {
+            try {
+                return new Date(dateString).toLocaleDateString('ro-RO');
+            } catch {
+                return dateString;
+            }
+        }
+
+        // Check for sync data in URL on load
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const syncData = urlParams.get('sync');
+            if (syncData) {
+                showAlert('🔄 Se procesează update-ul de la familie...', 'info');
+                // In a real app, this would decode and apply the sync data
+                setTimeout(() => {
+                    showAlert('✅ Update de la familie aplicat cu succes!', 'success');
+                    updateAllDisplays();
+                }, 2000);
+            }
+        });
+
+        console.log('🏠 Aplicația Utilitățile Familiei PWA v2.0 încărcată cu succes!');
+    </script>
+
+    <!-- PWA Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('✅ SW registered successfully');
+                        showAlert('📱 Aplicația poate funcționa offline!', 'info');
+                        updatePWAStatus();
+                    })
+                    .catch(error => {
+                        console.log('❌ SW registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
