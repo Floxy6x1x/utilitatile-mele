@@ -1,29 +1,61 @@
 {
-  "name": "Utilitățile Mele PWA",
+  "name": "Utilitățile Familiei",
   "short_name": "Utilități",
+  "description": "Aplicație PWA pentru gestionarea utilitaților și mașinii familiei cu sincronizare bidirectională",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4CAF50",
+  "orientation": "portrait-primary",
   "scope": ".",
+  "categories": ["utilities", "lifestyle", "productivity"],
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "icon-512.png",
+      "src": "icon-512.png", 
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-home.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Pagina principală cu contoare și reminder-uri"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Citire rapidă",
+      "short_name": "Citire",
+      "description": "Adaugă citire rapidă",
+      "url": "/?action=reading",
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Mașina",
+      "short_name": "Auto",
+      "description": "Informații mașină",
+      "url": "/?tab=car",
+      "icons": [
+        {
+          "src": "icon-192.png", 
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
