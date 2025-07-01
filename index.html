@@ -1430,66 +1430,6 @@
             });
         }
 
-        // === FIX-uri pentru erorile din aplicația originală ===
-
-        // Fix pentru: generateQuickReport is not defined
-        function generateQuickReport() {
-            showAlert('📊 Se generează raportul rapid...', 'info');
-            
-            setTimeout(() => {
-                try {
-                    const wb = XLSX.utils.book_new();
-                    const today = new Date();
-                    
-                    // Crează foaia de raport rapid
-                    const reportData = [
-                        ['RAPORT RAPID UTILITĂȚI'],
-                        ['Data generării:', today.toLocaleDateString('ro-RO')],
-                        [''],
-                        ['INDEXURI ACTUALE:']
-                    ];
-                    
-                    const types = [
-                        { key: 'waterBath', name: 'Apometru Baie' },
-                        { key: 'waterKitchen', name: 'Apometru Bucătărie' },
-                        { key: 'gas', name: 'Contor Gaz' },
-                        { key: 'electric', name: 'Contor Electricitate' }
-                    ];
-                    
-                    types.forEach(type => {
-                        const readings = familyData.readings[type.key] || [];
-                        if (readings.length > 0) {
-                            const latest = readings[0];
-                            reportData.push([type.name, latest.value, latest.date]);
-                        } else {
-                            reportData.push([type.name, 'Nu a fost citit', '-']);
-                        }
-                    });
-                    
-                    reportData.push(['']);
-                    reportData.push(['INFORMAȚII AUTO:']);
-                    
-                    const carData = familyData.carData;
-                    reportData.push(['Număr înmatriculare:', carData.carNumber || 'Nu a fost adăugat']);
-                    reportData.push(['Marca/Model:', carData.carBrand || 'Nu a fost adăugat']);
-                    reportData.push(['An fabricație:', carData.carYear || 'Nu a fost adăugat']);
-                    reportData.push(['Kilometri:', carData.carKm ? carData.carKm.toLocaleString() + ' km' : 'Nu a fost adăugat']);
-                    
-                    const ws = XLSX.utils.aoa_to_sheet(reportData);
-                    XLSX.utils.book_append_sheet(wb, ws, 'Raport Rapid');
-                    
-                    const fileName = `Raport_Rapid_${today.toISOString().split('T')[0]}.xlsx`;
-                    XLSX.writeFile(wb, fileName);
-                    
-                    showAlert('✅ Raport rapid generat cu succes!', 'success');
-                    
-                } catch (error) {
-                    console.error('Error generating quick report:', error);
-                    showAlert('❌ Eroare la generarea raportului', 'danger');
-                }
-            }, 1000);
-        }
-
         // === SUNET NOTIFICĂRI ===
         function playNotificationSound() {
             if (!soundEnabled) return;
@@ -2402,12 +2342,12 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
                     .then(registration => {
-                        console.log('✅ SW registered:', registration);
-                        console.log('📱 Aplicația poate fi instalată ca PWA!');
+                        console.log('✅ SW registered successfully');
+                        showAlert('📱 Aplicația poate funcționa offline!', 'info');
                     })
                     .catch(error => {
                         console.log('❌ SW registration failed:', error);
-                        console.log('💡 Aplicația funcționează și fără Service Worker');
+                        console.log('📱 Aplicația funcționează doar online');
                     });
             });
         }
