@@ -1,10 +1,2 @@
-const CACHE_NAME = 'indexuri-app-v2.2';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/script.js',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png'
-];
+// Fișier gol - logica este în index.html
+console.log('Utilitățile Mele v4.0 loaded');
