@@ -5,8 +5,8 @@ let currentTab = 'home';
 let currentFormType = '';
 let familyData = {};
 let syncInterval = null;
-let deferredPrompt = null;
 let isOnline = navigator.onLine;
+let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
 
 // Variabile pentru sync bidirectional
 let syncConfig = {
@@ -23,9 +23,6 @@ let syncConfig = {
 document.addEventListener('DOMContentLoaded', function() {
     // Load data
     loadAllData();
-    
-    // Setup PWA install prompt
-    setupPWAInstall();
     
     // Setup network status
     setupNetworkStatus();
@@ -47,6 +44,58 @@ document.addEventListener('DOMContentLoaded', function() {
     updateUI();
     updateReminders();
 });
+
+// === SUNET NOTIFICĂRI ===
+function playNotificationSound() {
+    if (!soundEnabled) return;
+    
+    try {
+        // Folosește Web Audio API pentru sunet plăcut
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Notă 1 - Do (C5)
+        const osc1 = audioContext.createOscillator();
+        const gain1 = audioContext.createGain();
+        osc1.connect(gain1);
+        gain1.connect(audioContext.destination);
+        osc1.frequency.value = 523.25; // C5
+        osc1.type = 'sine';
+        gain1.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        osc1.start(audioContext.currentTime);
+        osc1.stop(audioContext.currentTime + 0.2);
+        
+        // Notă 2 - Mi (E5)
+        setTimeout(() => {
+            const osc2 = audioContext.createOscillator();
+            const gain2 = audioContext.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioContext.destination);
+            osc2.frequency.value = 659.25; // E5
+            osc2.type = 'sine';
+            gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            osc2.start(audioContext.currentTime);
+            osc2.stop(audioContext.currentTime + 0.2);
+        }, 150);
+        
+        // Notă 3 - Sol (G5) 
+        setTimeout(() => {
+            const osc3 = audioContext.createOscillator();
+            const gain3 = audioContext.createGain();
+            osc3.connect(gain3);
+            gain3.connect(audioContext.destination);
+            osc3.frequency.value = 783.99; // G5
+            osc3.type = 'sine';
+            gain3.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gain3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            osc3.start(audioContext.currentTime);
+            osc3.stop(audioContext.currentTime + 0.3);
+        }, 300);
+    } catch (e) {
+        console.log('Audio error:', e);
+    }
+}
 
 // === SISTEM SINCRONIZARE BIDIRECTIONALĂ ===
 
@@ -391,49 +440,6 @@ function markAllReadingsAsSynced() {
             }
         });
     });
-}
-
-// === PWA INSTALL FUNCTIONALITY ===
-function setupPWAInstall() {
-    // Listen for beforeinstallprompt event
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        
-        // Show install buttons
-        const installBtns = document.querySelectorAll('#installBtn, #installBtn2');
-        installBtns.forEach(btn => {
-            if (btn) {
-                btn.style.display = 'inline-flex';
-                btn.textContent = '📱 Instalează App';
-            }
-        });
-    });
-
-    // Listen for appinstalled event
-    window.addEventListener('appinstalled', () => {
-        deferredPrompt = null;
-        
-        const installBtns = document.querySelectorAll('#installBtn, #installBtn2');
-        installBtns.forEach(btn => {
-            if (btn) {
-                btn.style.display = 'none';
-            }
-        });
-    });
-}
-
-function installPWA() {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                // App installing
-            }
-            deferredPrompt = null;
-        });
-    }
 }
 
 // === NETWORK STATUS ===
@@ -797,10 +803,13 @@ function getLatestConsumption(type) {
     return Math.max(0, latest - previous);
 }
 
-// === REMINDERS ===
+// === REMINDERS CU SUNET ===
 function updateReminders() {
     const remindersList = document.getElementById('remindersList');
     if (!remindersList) return;
+    
+    // Salvează numărul vechi de remindere
+    const oldCount = parseInt(document.getElementById('activeReminders')?.textContent || '0');
     
     const reminders = [];
     const today = new Date();
@@ -860,6 +869,11 @@ function updateReminders() {
     const activeRemindersElement = document.getElementById('activeReminders');
     if (activeRemindersElement) {
         activeRemindersElement.textContent = reminders.length.toString();
+    }
+    
+    // Play sound dacă sunt reminder-uri noi
+    if (reminders.length > oldCount && reminders.length > 0) {
+        playNotificationSound();
     }
     
     // Display reminders
@@ -1454,7 +1468,7 @@ function calculateMonthlyCost(consumption) {
 
 // === EXPORT FUNCTIONS ===
 function exportExcel() {
-    showExportProgress('📋 Export Excel', 'Se generează fișierul Excel...');
+    showAlert('📋 Se generează fișierul Excel...', 'info');
     
     setTimeout(() => {
         try {
@@ -1499,83 +1513,18 @@ function exportExcel() {
                 }
             }
             
-            updateExportProgress(100, 'Se descarcă fișierul...');
-            
-            setTimeout(() => {
-                XLSX.writeFile(wb, `utilitati_${new Date().toISOString().split('T')[0]}.xlsx`);
-                hideExportProgress();
-                showAlert('✅ Fișier Excel descărcat cu succes!', 'success');
-            }, 500);
+            XLSX.writeFile(wb, `utilitati_${new Date().toISOString().split('T')[0]}.xlsx`);
+            showAlert('✅ Fișier Excel descărcat cu succes!', 'success');
             
         } catch (error) {
             console.error('Eroare export Excel:', error);
-            hideExportProgress();
             showAlert('❌ Eroare la generarea fișierului Excel', 'danger');
         }
     }, 1000);
 }
 
 function exportPDF() {
-    showExportProgress('📄 Export PDF', 'Se generează fișierul PDF...');
-    
-    setTimeout(() => {
-        try {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Title
-            doc.setFontSize(20);
-            doc.text('📊 Raport Utilități', 20, 30);
-            
-            // Date
-            doc.setFontSize(12);
-            doc.text(`Generat pe: ${new Date().toLocaleDateString('ro-RO')}`, 20, 45);
-            
-            if (familyData.familyCode) {
-                doc.text(`Familie: ${familyData.familyCode}`, 20, 55);
-            }
-            
-            let yPosition = 70;
-            
-            // Consumption table
-            doc.setFontSize(14);
-            doc.text('Consumuri lunare:', 20, yPosition);
-            yPosition += 15;
-            
-            const months = getLastSixMonths();
-            months.forEach(month => {
-                const consumption = getConsumptionForMonth(month.year, month.month);
-                const cost = calculateMonthlyCost(consumption);
-                
-                doc.setFontSize(10);
-                doc.text(`${month.display}:`, 25, yPosition);
-                doc.text(`Apă: ${(consumption.waterBath + consumption.waterKitchen).toFixed(2)} mc`, 25, yPosition + 10);
-                doc.text(`Gaz: ${consumption.gas.toFixed(2)} mc`, 25, yPosition + 20);
-                doc.text(`Electric: ${consumption.electric.toFixed(2)} kWh`, 25, yPosition + 30);
-                doc.text(`Cost: ${cost.toFixed(2)} RON`, 25, yPosition + 40);
-                
-                yPosition += 55;
-                
-                if (yPosition > 250) {
-                    doc.addPage();
-                    yPosition = 30;
-                }
-            });
-            
-            updateExportProgress(100, 'Se descarcă fișierul...');
-            
-            setTimeout(() => {
-                doc.save(`utilitati_${new Date().toISOString().split('T')[0]}.pdf`);
-                hideExportProgress();
-                showAlert('✅ Fișier PDF descărcat cu succes!', 'success');
-            }, 500);
-            
-        } catch (error) {
-            console.error('Eroare export PDF:', error);
-            hideExportProgress();
-            showAlert('❌ Funcția de export PDF va fi implementată în viitoarea versiune!', 'danger');
-        }
-    }, 1000);
+    showAlert('📄 Funcția PDF va fi disponibilă în curând!', 'info');
 }
 
 function shareReport() {
@@ -1597,49 +1546,6 @@ function shareReport() {
     
     URL.revokeObjectURL(url);
     showAlert('✅ Backup JSON descărcat!', 'success');
-}
-
-// === EXPORT PROGRESS ===
-function showExportProgress(title, message) {
-    const progressDiv = document.getElementById('exportProgress');
-    const titleElement = document.getElementById('exportTitle');
-    const messageElement = document.getElementById('exportMessage');
-    const progressFill = document.getElementById('progressFill');
-    
-    if (progressDiv) {
-        progressDiv.style.display = 'block';
-        titleElement.textContent = title;
-        messageElement.textContent = message;
-        progressFill.style.width = '0%';
-        
-        // Animate progress
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress > 90) {
-                clearInterval(interval);
-                progress = 90;
-            }
-            progressFill.style.width = progress + '%';
-        }, 200);
-    }
-}
-
-function updateExportProgress(percent, message) {
-    const messageElement = document.getElementById('exportMessage');
-    const progressFill = document.getElementById('progressFill');
-    
-    if (messageElement) messageElement.textContent = message;
-    if (progressFill) progressFill.style.width = percent + '%';
-}
-
-function hideExportProgress() {
-    const progressDiv = document.getElementById('exportProgress');
-    if (progressDiv) {
-        setTimeout(() => {
-            progressDiv.style.display = 'none';
-        }, 1000);
-    }
 }
 
 // === SETTINGS ===
@@ -1693,24 +1599,6 @@ function factoryReset() {
             showAlert('🏭 Factory Reset complet! Aplicația a fost resetată.', 'warning');
         }
     }
-}
-
-function checkPWAFeatures() {
-    const features = [
-        { name: 'Service Worker', check: 'serviceWorker' in navigator },
-        { name: 'Manifest', check: true },
-        { name: 'HTTPS/Localhost', check: location.protocol === 'https:' || location.hostname === 'localhost' },
-        { name: 'Standalone Display', check: window.matchMedia('(display-mode: standalone)').matches },
-        { name: 'Push Notifications', check: 'PushManager' in window },
-        { name: 'Background Sync', check: 'serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype },
-        { name: 'Install Prompt', check: !!deferredPrompt }
-    ];
-    
-    const results = features.map(f => 
-        `${f.check ? '✅' : '❌'} ${f.name}: ${f.check ? 'Suportat' : 'Nu este suportat'}`
-    ).join('\n');
-    
-    alert(`🔍 Status funcționalități PWA:\n\n${results}`);
 }
 
 // === QUICK ACTIONS ===
